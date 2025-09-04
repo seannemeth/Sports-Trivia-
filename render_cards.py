@@ -1,53 +1,85 @@
-
+# render_cards.py  — robust font + line-height (no .size usage)
 import json
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
+import os
 
 W, H = 1080, 1920
 PAD = 64
 ASSETS = Path(__file__).parent / "assets"
-FONT_PATH = ASSETS / "fonts" / "Inter-Bold.ttf"
+
+def _pick_font_path():
+    # 1) prefer project font
+    p = ASSETS / "fonts" / "Inter-Bold.ttf"
+    if p.exists():
+        return str(p)
+    # 2) fallback to system DejaVu (present on GitHub runners)
+    for cand in [
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+    ]:
+        if os.path.exists(cand):
+            return cand
+    # 3) let PIL load_default later
+    return None
+
+def _load_font(size):
+    fp = _pick_font_path()
+    try:
+        if fp:
+            return ImageFont.truetype(fp, size)
+    except Exception:
+        pass
+    return ImageFont.load_default()
+
+def _line_height(draw, font):
+    # robust line height for any ImageFont
+    try:
+        ascent, descent = font.getmetrics()
+        return ascent + descent
+    except Exception:
+        bbox = draw.textbbox((0, 0), "Ag", font=font)
+        return max(48, bbox[3] - bbox[1])
 
 def draw_multiline(draw, text, xy, font, fill, max_width, line_spacing=8):
     x, y = xy
-    words = text.split()
-    line = ""
+    words, line = text.split(), ""
+    lh = _line_height(draw, font)
+
     for w in words:
         test = line + (" " if line else "") + w
         if draw.textlength(test, font=font) <= max_width:
             line = test
         else:
             draw.text((x, y), line, font=font, fill=fill)
-            y += font.size + line_spacing
+            y += lh + line_spacing
             line = w
     if line:
         draw.text((x, y), line, font=font, fill=fill)
-        y += font.size + line_spacing
+        y += lh + line_spacing
     return y
 
 def draw_card(question, idx, out_dir):
     img = Image.new("RGB", (W, H), (20, 22, 26))
     draw = ImageDraw.Draw(img)
 
-    try:
-        font_title = ImageFont.truetype(str(FONT_PATH), 72)
-        font_body  = ImageFont.truetype(str(FONT_PATH), 52)
-    except Exception:
-        font_title = ImageFont.load_default()
-        font_body  = ImageFont.load_default()
+    font_title = _load_font(72)
+    font_body  = _load_font(52)
 
     y = PAD + 20
     draw.text((PAD, y), "Daily Sports Trivia", fill=(240,240,240), font=font_title)
-    y += 120
+    y += _line_height(draw, font_title) + 48
 
     q_text = question["question"]
-    y = draw_multiline(draw, q_text, (PAD, y), font_body, fill=(255,255,255), max_width=W-2*PAD, line_spacing=10)
-    y += 40
+    y = draw_multiline(draw, q_text, (PAD, y), font_body, fill=(255,255,255),
+                       max_width=W-2*PAD, line_spacing=10)
+    y += 24
 
     for i, opt in enumerate(question["options"], start=1):
         bullet = f"{i}. {opt}"
-        y = draw_multiline(draw, bullet, (PAD, y), font_body, fill=(220,220,220), max_width=W-2*PAD, line_spacing=8)
-        y += 12
+        y = draw_multiline(draw, bullet, (PAD, y), font=font_body, fill=(220,220,220),
+                           max_width=W-2*PAD, line_spacing=8)
+        y += 8
 
     footer = "@trivia • #Shorts"
     draw.text((PAD, H - PAD - 40), footer, fill=(200,200,200), font=font_body)
@@ -57,7 +89,6 @@ def draw_card(question, idx, out_dir):
     return out_path
 
 def render_cards(json_path):
-    import json
     with open(json_path, "r", encoding="utf-8") as f:
         data = json.load(f)
     out_dir = Path(json_path).with_suffix("").as_posix() + "_cards"
