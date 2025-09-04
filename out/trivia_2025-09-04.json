@@ -1,0 +1,155 @@
+{
+  "date": "2025-09-04",
+  "questions": [
+    {
+      "type": "city_for_team",
+      "question": "In which city do the Suns play (NBA)?",
+      "options": [
+        "Philadelphia",
+        "Orlando",
+        "Sacramento",
+        "Phoenix"
+      ],
+      "answer": "Phoenix",
+      "meta": {
+        "league": "NBA",
+        "team": "Suns"
+      }
+    },
+    {
+      "type": "division_for_team",
+      "question": "In which division do the Falcons play (NFL)?",
+      "options": [
+        "NFC South",
+        "AFC South",
+        "AFC East",
+        "NFC East"
+      ],
+      "answer": "NFC South",
+      "meta": {
+        "league": "NFL",
+        "team": "Falcons"
+      }
+    },
+    {
+      "type": "team_for_city",
+      "question": "Which MLB team plays in Houston?",
+      "options": [
+        "Royals",
+        "Astros",
+        "White Sox",
+        "Phillies"
+      ],
+      "answer": "Astros",
+      "meta": {
+        "league": "MLB",
+        "city": "Houston"
+      }
+    },
+    {
+      "type": "team_for_city",
+      "question": "Which NBA team plays in Phoenix?",
+      "options": [
+        "Suns",
+        "Wizards",
+        "Grizzlies",
+        "Cavaliers"
+      ],
+      "answer": "Suns",
+      "meta": {
+        "league": "NBA",
+        "city": "Phoenix"
+      }
+    },
+    {
+      "type": "city_for_team",
+      "question": "In which city do the Nets play (NBA)?",
+      "options": [
+        "San Antonio",
+        "Los Angeles",
+        "Houston",
+        "Brooklyn"
+      ],
+      "answer": "Brooklyn",
+      "meta": {
+        "league": "NBA",
+        "team": "Nets"
+      }
+    },
+    {
+      "type": "city_for_team",
+      "question": "In which city do the Rockies play (MLB)?",
+      "options": [
+        "Colorado",
+        "Minnesota",
+        "Seattle",
+        "St. Louis"
+      ],
+      "answer": "Colorado",
+      "meta": {
+        "league": "MLB",
+        "team": "Rockies"
+      }
+    },
+    {
+      "type": "team_for_city",
+      "question": "Which MLB team plays in Los Angeles?",
+      "options": [
+        "Tigers",
+        "Athletics",
+        "Marlins",
+        "Angels"
+      ],
+      "answer": "Angels",
+      "meta": {
+        "league": "MLB",
+        "city": "Los Angeles"
+      }
+    },
+    {
+      "type": "city_for_team",
+      "question": "In which city do the Mariners play (MLB)?",
+      "options": [
+        "Detroit",
+        "Seattle",
+        "Los Angeles",
+        "Boston"
+      ],
+      "answer": "Seattle",
+      "meta": {
+        "league": "MLB",
+        "team": "Mariners"
+      }
+    },
+    {
+      "type": "city_for_team",
+      "question": "In which city do the Diamondbacks play (MLB)?",
+      "options": [
+        "Milwaukee",
+        "Arizona",
+        "Toronto",
+        "Oakland"
+      ],
+      "answer": "Arizona",
+      "meta": {
+        "league": "MLB",
+        "team": "Diamondbacks"
+      }
+    },
+    {
+      "type": "team_for_city",
+      "question": "Which MLB team plays in Pittsburgh?",
+      "options": [
+        "Twins",
+        "Cubs",
+        "Pirates",
+        "Reds"
+      ],
+      "answer": "Pirates",
+      "meta": {
+        "league": "MLB",
+        "city": "Pittsburgh"
+      }
+    }
+  ]
+}
