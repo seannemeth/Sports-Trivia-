@@ -1,0 +1,31 @@
+league,division,city,team
+MLB,AL East,Baltimore,Orioles
+MLB,AL East,Boston,Red Sox
+MLB,AL East,New York,Yankees
+MLB,AL East,Tampa Bay,Rays
+MLB,AL East,Toronto,Blue Jays
+MLB,AL Central,Chicago,White Sox
+MLB,AL Central,Cleveland,Guardians
+MLB,AL Central,Detroit,Tigers
+MLB,AL Central,Kansas City,Royals
+MLB,AL Central,Minnesota,Twins
+MLB,AL West,Houston,Astros
+MLB,AL West,Los Angeles,Angels
+MLB,AL West,Oakland,Athletics
+MLB,AL West,Seattle,Mariners
+MLB,AL West,Texas,Rangers
+MLB,NL East,Atlanta,Braves
+MLB,NL East,Miami,Marlins
+MLB,NL East,New York,Mets
+MLB,NL East,Philadelphia,Phillies
+MLB,NL East,Washington,Nationals
+MLB,NL Central,Chicago,Cubs
+MLB,NL Central,Cincinnati,Reds
+MLB,NL Central,Milwaukee,Brewers
+MLB,NL Central,Pittsburgh,Pirates
+MLB,NL Central,St. Louis,Cardinals
+MLB,NL West,Arizona,Diamondbacks
+MLB,NL West,Colorado,Rockies
+MLB,NL West,Los Angeles,Dodgers
+MLB,NL West,San Diego,Padres
+MLB,NL West,San Francisco,Giants
