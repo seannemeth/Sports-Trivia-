@@ -2,12 +2,57 @@
   "date": "2025-09-05",
   "questions": [
     {
+      "type": "pair_same_division",
+      "question": "Which pair plays in the SAME division (NBA)?",
+      "options": [
+        "Heat & Pelicans",
+        "76ers & Rockets",
+        "Wizards & Kings",
+        "Pelicans & Rockets"
+      ],
+      "answer": "Pelicans & Rockets",
+      "meta": {
+        "league": "NBA",
+        "division": "Southwest"
+      }
+    },
+    {
+      "type": "not_in_division",
+      "question": "Which team is NOT in the NL Central (MLB)?",
+      "options": [
+        "Cincinnati Reds",
+        "Houston Astros",
+        "St. Louis Cardinals",
+        "Chicago Cubs"
+      ],
+      "answer": "Houston Astros",
+      "meta": {
+        "league": "MLB",
+        "division": "NL Central"
+      }
+    },
+    {
+      "type": "not_in_division",
+      "question": "Which team is NOT in the NFC South (NFL)?",
+      "options": [
+        "Atlanta Falcons",
+        "Tampa Bay Buccaneers",
+        "Carolina Panthers",
+        "Kansas City Chiefs"
+      ],
+      "answer": "Kansas City Chiefs",
+      "meta": {
+        "league": "NFL",
+        "division": "NFC South"
+      }
+    },
+    {
       "type": "division_count",
       "question": "How many teams are in the Central (NBA)?",
       "options": [
+        "4",
         "5",
-        "3",
-        "8",
+        "7",
         "6"
       ],
       "answer": "5",
@@ -18,62 +63,32 @@
       }
     },
     {
-      "type": "fix_mismatch",
-      "question": "Which city–team pairing is CORRECT in the MLB?",
-      "options": [
-        "Kansas City Brewers",
-        "Boston Red Sox",
-        "Cincinnati Blue Jays",
-        "Chicago Marlins"
-      ],
-      "answer": "Boston Red Sox",
-      "meta": {
-        "league": "MLB"
-      }
-    },
-    {
       "type": "city_cross_league",
-      "question": "Which city has teams in BOTH the MLB and the NBA?",
+      "question": "Which city has teams in BOTH the NFL and the MLB?",
       "options": [
-        "Toronto",
-        "Seattle",
-        "Indiana",
-        "Carolina"
+        "San Antonio",
+        "Texas",
+        "Cincinnati",
+        "Golden State"
       ],
-      "answer": "Toronto",
+      "answer": "Cincinnati",
       "meta": {
         "leagues": [
-          "MLB",
-          "NBA"
+          "NFL",
+          "MLB"
         ]
-      }
-    },
-    {
-      "type": "division_count",
-      "question": "How many teams are in the NL West (MLB)?",
-      "options": [
-        "3",
-        "8",
-        "4",
-        "5"
-      ],
-      "answer": "5",
-      "meta": {
-        "league": "MLB",
-        "division": "NL West",
-        "true_count": 5
       }
     },
     {
       "type": "city_cross_league",
       "question": "Which city has teams in BOTH the MLB and the NFL?",
       "options": [
-        "Dallas",
-        "St. Louis",
-        "Indiana",
-        "Pittsburgh"
+        "New Orleans",
+        "Cleveland",
+        "Utah",
+        "San Antonio"
       ],
-      "answer": "Pittsburgh",
+      "answer": "Cleveland",
       "meta": {
         "leagues": [
           "MLB",
@@ -83,78 +98,60 @@
     },
     {
       "type": "fix_mismatch",
-      "question": "Which city–team pairing is CORRECT in the MLB?",
+      "question": "Which city–team pairing is CORRECT in the NBA?",
       "options": [
-        "St. Louis Red Sox",
-        "Houston Rockies",
-        "Miami Mets",
-        "Texas Rangers"
+        "LA Bulls",
+        "New Orleans Pistons",
+        "Dallas Hornets",
+        "Indiana Pacers"
       ],
-      "answer": "Texas Rangers",
+      "answer": "Indiana Pacers",
       "meta": {
-        "league": "MLB"
-      }
-    },
-    {
-      "type": "pair_same_division",
-      "question": "Which pair plays in the SAME division (MLB)?",
-      "options": [
-        "Red Sox & Pirates",
-        "Cardinals & Reds",
-        "Rockies & Marlins",
-        "Pirates & Tigers"
-      ],
-      "answer": "Cardinals & Reds",
-      "meta": {
-        "league": "MLB",
-        "division": "NL Central"
-      }
-    },
-    {
-      "type": "division_count",
-      "question": "How many teams are in the AL West (MLB)?",
-      "options": [
-        "4",
-        "7",
-        "5",
-        "6"
-      ],
-      "answer": "5",
-      "meta": {
-        "league": "MLB",
-        "division": "AL West",
-        "true_count": 5
-      }
-    },
-    {
-      "type": "division_count",
-      "question": "How many teams are in the Southwest (NBA)?",
-      "options": [
-        "6",
-        "5",
-        "4",
-        "7"
-      ],
-      "answer": "5",
-      "meta": {
-        "league": "NBA",
-        "division": "Southwest",
-        "true_count": 5
+        "league": "NBA"
       }
     },
     {
       "type": "not_in_division",
-      "question": "Which team is NOT in the AFC West (NFL)?",
+      "question": "Which team is NOT in the NFC East (NFL)?",
       "options": [
-        "Kansas City Chiefs",
-        "Los Angeles Chargers",
-        "Denver Broncos",
-        "Atlanta Falcons"
+        "Buffalo Bills",
+        "Washington Commanders",
+        "Philadelphia Eagles",
+        "Dallas Cowboys"
       ],
-      "answer": "Atlanta Falcons",
+      "answer": "Buffalo Bills",
       "meta": {
         "league": "NFL",
-        "division": "AFC West"
+        "division": "NFC East"
+      }
+    },
+    {
+      "type": "fix_mismatch",
+      "question": "Which city–team pairing is CORRECT in the NBA?",
+      "options": [
+        "Memphis Wizards",
+        "Oklahoma City Nets",
+        "Milwaukee Bucks",
+        "LA Lakers"
+      ],
+      "answer": "Milwaukee Bucks",
+      "meta": {
+        "league": "NBA"
+      }
+    },
+    {
+      "type": "not_in_division",
+      "question": "Which team is NOT in the NL West (MLB)?",
+      "options": [
+        "Arizona Diamondbacks",
+        "Texas Rangers",
+        "San Diego Padres",
+        "Colorado Rockies"
+      ],
+      "answer": "Texas Rangers",
+      "meta": {
+        "league": "MLB",
+        "division": "NL West"
       }
     }
   ]
