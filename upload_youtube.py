@@ -12,6 +12,7 @@ def get_youtube_client():
     if not token_b64:
         print("Missing env YT_TOKEN_JSON_BASE64", file=sys.stderr)
         sys.exit(2)
+    # Expect a single-line base64 of your token.json (must include refresh_token)
     info = json.loads(base64.b64decode(token_b64))
     creds = Credentials.from_authorized_user_info(info, scopes=SCOPES)
     return build("youtube", "v3", credentials=creds, cache_discovery=False)
@@ -24,7 +25,7 @@ def upload(path, title, desc, tags_csv, privacy="public"):
             "title": title[:100],
             "description": desc[:5000],
             "tags": tags,
-            "categoryId": "17",  # Sports (tweak if you want)
+            "categoryId": "17",  # Sports (change if you like)
         },
         "status": {
             "privacyStatus": privacy,
@@ -34,7 +35,7 @@ def upload(path, title, desc, tags_csv, privacy="public"):
     }
     media = MediaFileUpload(
         path, mimetype="video/mp4",
-        chunksize=8 * 1024 * 1024,  # 8MB chunks
+        chunksize=8 * 1024 * 1024,  # 8 MB chunked, resumable
         resumable=True
     )
 
@@ -45,14 +46,12 @@ def upload(path, title, desc, tags_csv, privacy="public"):
     try:
         while response is None:
             status, response = request.next_chunk()
-            # status is a MediaUploadProgress object, may be None between chunks
             if status and (time.time() - last_print > 1.5):
-                pct = int(status.progress() * 100)
-                print(f"  progress: {pct}%", flush=True)
+                print(f"  progress: {int(status.progress()*100)}%", flush=True)
                 last_print = time.time()
     except HttpError as e:
         print("YouTube API error:", e, file=sys.stderr)
-        if e.resp is not None:
+        if hasattr(e, "resp") and e.resp is not None:
             print("Status:", e.resp.status, file=sys.stderr)
         sys.exit(3)
 
