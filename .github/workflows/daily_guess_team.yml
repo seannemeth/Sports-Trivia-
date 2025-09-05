@@ -27,19 +27,16 @@ jobs:
           python -m pip install --upgrade pip wheel setuptools
           python -m pip install "Pillow<10" "moviepy==1.0.3" imageio-ffmpeg google-api-python-client google-auth requests
 
-      # fetch logos & flags into assets/
       - name: Fetch logos & flags (on-demand, with manifest)
         run: |
           python fetch_assets_v4.py data/lineup_basketball.json data/lineup_football.json data/lineup_soccer.json
 
-      # render the 3 videos
       - name: Render three Shorts
         run: |
           python render_guess_team.py data/lineup_basketball.json
           python render_guess_team.py data/lineup_football.json
           python render_guess_team.py data/lineup_soccer.json
 
-      # ✅ upload each one to YouTube (needs secret YT_TOKEN_JSON_BASE64)
       - name: Upload Shorts to YouTube (staggered)
         env:
           YT_TOKEN_JSON_BASE64: ${{ secrets.YT_TOKEN_JSON_BASE64 }}
@@ -51,19 +48,12 @@ jobs:
               echo "Missing $MP4 — skipping"
               continue
             fi
-            TITLE=$(python - "$JSON" << 'PY'
-import json,sys
-d=json.load(open(sys.argv[1]))
-sport={"basketball":"NBA","football":"NFL","soccer":"Soccer"}.get(d.get("mode",""),"")
-base=(d.get("title") or "Guess The Team").strip()
-print(f"{base} • {sport} ({d.get('year','')})".strip())
-PY
-)
+            TITLE=$(python -c 'import json,sys; d=json.load(open(sys.argv[1])); sport={"basketball":"NBA","football":"NFL","soccer":"Soccer"}.get(d.get("mode",""),""); base=(d.get("title") or "Guess The Team").strip(); year=str(d.get("year","")); out=base + ((" \u2022 " + sport) if sport else "") + ((" ("+year+")") if year else ""); print(out)' "$JSON")
             DESC="Daily Guess-The-Team challenge. Can you name the squad? #Shorts #Sports #Trivia"
             TAGS="sports,trivia,shorts"
             echo "Uploading: $MP4 -> $TITLE"
             python upload_youtube.py "$MP4" "$TITLE" "$DESC" "$TAGS"
-            # stagger the next upload 15–34 min to avoid spammy timing
+            # stagger 15–34 min between uploads
             sleep $(( (RANDOM % 20 + 15) * 60 ))
           done
 
