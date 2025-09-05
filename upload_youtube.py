@@ -3,13 +3,24 @@ import base64, json, os, sys
 from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
 
-SCOPES = ["https://www.googleapis.com/auth/youtube.upload","https://www.googleapis.com/auth/youtube"]
+SCOPES = [
+    "https://www.googleapis.com/auth/youtube.upload",
+    "https://www.googleapis.com/auth/youtube",
+]
+
+def _decode_b64_json(s: str):
+    s = (s or "").strip().replace("\n", "")
+    missing = (-len(s)) % 4
+    if missing:
+        s += "=" * missing
+    data = base64.b64decode(s)
+    return json.loads(data.decode("utf-8"))
 
 def get_youtube_client():
     token_b64 = os.getenv("YT_TOKEN_JSON_BASE64")
     if not token_b64:
         raise RuntimeError("Missing YT_TOKEN_JSON_BASE64 secret.")
-    info = json.loads(base64.b64decode(token_b64))
+    info = _decode_b64_json(token_b64)
     creds = Credentials.from_authorized_user_info(info, scopes=SCOPES)
     return build("youtube", "v3", credentials=creds)
 
@@ -20,11 +31,12 @@ def upload(video_path, title, description, tags=None, publish_iso=None):
             "title": title[:100],
             "description": description[:5000],
             "tags": (tags or [])[:10],
-            "categoryId": "17"
+            "categoryId": "17",  # Sports
         },
         "status": {
-            "privacyStatus": "public"
-        }
+            "privacyStatus": "public" if not publish_iso else "private",
+            **({"publishAt": publish_iso} if publish_iso else {}),
+        },
     }
     req = yt.videos().insert(part="snippet,status", body=body, media_body=video_path)
     res = req.execute()

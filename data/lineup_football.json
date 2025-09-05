@@ -1,0 +1,53 @@
+{
+  "mode": "football",
+  "background": "assets/backgrounds/football.png",
+  "title": "Guess The Team \u2022 NFL",
+  "year": "2023",
+  "handle": "@CoachClicks \u2022 #Shorts",
+  "players": [
+    {
+      "pos": "LT",
+      "college": "Notre Dame"
+    },
+    {
+      "pos": "LG",
+      "college": "UCLA"
+    },
+    {
+      "pos": "C",
+      "college": "Iowa"
+    },
+    {
+      "pos": "RG",
+      "college": "Wisconsin"
+    },
+    {
+      "pos": "RT",
+      "college": "Alabama"
+    },
+    {
+      "pos": "QB",
+      "college": "Clemson"
+    },
+    {
+      "pos": "RB",
+      "college": "Texas"
+    },
+    {
+      "pos": "TE",
+      "college": "Iowa"
+    },
+    {
+      "pos": "WR1",
+      "college": "LSU"
+    },
+    {
+      "pos": "WR2",
+      "college": "Ohio State"
+    },
+    {
+      "pos": "WR3",
+      "college": "USC"
+    }
+  ]
+}

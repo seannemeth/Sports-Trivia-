@@ -1,0 +1,53 @@
+{
+  "mode": "soccer",
+  "background": "assets/backgrounds/soccer.png",
+  "title": "Guess The Team \u2022 Soccer",
+  "year": "2022",
+  "handle": "@CoachClicks \u2022 #Shorts",
+  "players": [
+    {
+      "pos": "GK",
+      "flag": "BRA"
+    },
+    {
+      "pos": "LB",
+      "flag": "ENG"
+    },
+    {
+      "pos": "LCB",
+      "flag": "NED"
+    },
+    {
+      "pos": "RCB",
+      "flag": "GER"
+    },
+    {
+      "pos": "RB",
+      "flag": "ESP"
+    },
+    {
+      "pos": "DM",
+      "flag": "FRA"
+    },
+    {
+      "pos": "LCM",
+      "flag": "URU"
+    },
+    {
+      "pos": "RCM",
+      "flag": "ARG"
+    },
+    {
+      "pos": "LW",
+      "flag": "POR"
+    },
+    {
+      "pos": "ST",
+      "flag": "POL"
+    },
+    {
+      "pos": "RW",
+      "flag": "USA"
+    }
+  ]
+}

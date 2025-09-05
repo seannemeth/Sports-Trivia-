@@ -1,0 +1,29 @@
+{
+  "mode": "basketball",
+  "background": "assets/backgrounds/basketball.png",
+  "title": "Guess The Team \u2022 NBA",
+  "year": "2024",
+  "handle": "@CoachClicks \u2022 #Shorts",
+  "players": [
+    {
+      "pos": "PG",
+      "college": "Murray State"
+    },
+    {
+      "pos": "SG",
+      "college": "Georgia"
+    },
+    {
+      "pos": "SF",
+      "college": "Duke"
+    },
+    {
+      "pos": "PF",
+      "college": "Kentucky"
+    },
+    {
+      "pos": "C",
+      "college": "Arizona"
+    }
+  ]
+}
