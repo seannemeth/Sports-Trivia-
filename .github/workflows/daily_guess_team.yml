@@ -32,11 +32,11 @@ jobs:
         run: |
           python data/daily_agent.py
 
-      # Fetch logos & flags for today's JSONs (downloads to assets/* and creates a license manifest)
       - name: Fetch logos & flags for today's lineups
         run: |
-          TODAY=$(date +%F)
-          python fetch_assets_v4.py data/out/$TODAY/lineup_basketball.json data/out/$TODAY/lineup_football.json data/out/$TODAY/lineup_soccer.json
+        TODAY=$(date +%F)
+        python fetch_assets_v4_2.py data/out/$TODAY/lineup_basketball.json data/out/$TODAY/lineup_football.json data/out/$TODAY/lineup_soccer.json
+
 
       # Render all three Shorts with on-screen reveal
       - name: Render today's three Shorts (with on-screen reveal)
