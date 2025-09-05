@@ -31,17 +31,53 @@ def _shadow(img, radius=22, alpha=140, expand=24, r=28):
     d.rounded_rectangle((expand,expand, w+expand, h+expand), radius=r, fill=(0,0,0,alpha))
     return sh.filter(ImageFilter.GaussianBlur(radius))
 
-def _pill(text, font, color=(10,35,70), txt=(255,255,255)):
-    dmy = Image.new("RGB",(10,10)); draw = ImageDraw.Draw(dmy)
-    tw = int(draw.textlength(text, font=font))
-    h  = int(font.size*1.1) + 26
+def _wrap_lines(text, draw, font, max_w):
+    if max_w is None:
+        return [text]
+    words = text.split()
+    lines, cur = [], ""
+    for w in words:
+        t = (cur + " " + w).strip()
+        if int(draw.textlength(t, font=font)) <= max_w:
+            cur = t
+        else:
+            if cur: lines.append(cur)
+            cur = w
+    if cur: lines.append(cur)
+    return lines or [""]
+
+def _pill(text, font, color=(10,35,70), txt=(255,255,255), max_w=None, line_gap=6):
+    dmy = Image.new("RGBA",(10,10)); draw = ImageDraw.Draw(dmy)
+    inner_max = None if max_w is None else max(100, max_w - 38)
+    lines = _wrap_lines(text, draw, font, inner_max)
+    tw = max(int(draw.textlength(line, font=font)) for line in lines) if lines else 0
+    lh = int(font.size*1.05)
+    h  = lh*len(lines) + 26 + (max(0, len(lines)-1))*line_gap
     w  = max(160, tw + 38)
     pill = Image.new("RGBA", (w,h), (0,0,0,0))
     pd = ImageDraw.Draw(pill)
-    pd.rounded_rectangle((0,0,w,h), radius=16,
-                         fill=(color[0],color[1],color[2],235))
-    pd.text((19, (h - int(font.size*1.1))//2 + 6), text, font=font, fill=txt)
+    pd.rounded_rectangle((0,0,w,h), radius=16, fill=(color[0],color[1],color[2],235))
+    y = (h - (lh*len(lines) + (len(lines)-1)*line_gap))//2
+    for line in lines:
+        lx = (w - int(pd.textlength(line, font=font)))//2
+        pd.text((lx, y), line, font=font, fill=txt)
+        y += lh + line_gap
     return pill
+
+def _pos_badge(text, bg=(0,0,0), fg=(255,255,255), *, font_size=28, max_w=220):
+    f = _font(font_size)
+    dmy = Image.new("RGBA",(10,10)); dr = ImageDraw.Draw(dmy)
+    t = text
+    while int(dr.textlength(t, font=f)) > max_w - 26 and len(t) > 3:
+        t = t[:-2] + "…"
+    tw = int(dr.textlength(t, font=f))
+    h  = int(f.size*1.05) + 16
+    w  = max(56, min(max_w, tw + 26))
+    badge = Image.new("RGBA",(w,h),(0,0,0,0))
+    bd = ImageDraw.Draw(badge)
+    bd.rounded_rectangle((0,0,w,h), radius=12, fill=(bg[0],bg[1],bg[2],220))
+    bd.text(((w - tw)//2, (h - int(f.size*1.05))//2 + 4), t, font=f, fill=fg)
+    return badge
 
 def _slug(s):
     s = s.strip().lower()
@@ -63,30 +99,31 @@ def _stack_with_logo(center_xy, label_img, logo_img=None, gap=10):
 POS_FULL = {
     "PG": "Point Guard", "SG": "Shooting Guard", "SF": "Small Forward",
     "PF": "Power Forward", "C": "Center",
-    "LT": "Left Tackle", "LG": "Left Guard", "C": "Center",
-    "RG": "Right Guard", "RT": "Right Tackle",
-    "QB": "Quarterback", "RB": "Running Back", "TE": "Tight End",
+    "LT": "Left Tackle", "LG": "Left Guard", "RG": "Right Guard", "RT": "Right Tackle",
+    "QB": "Quarterback", "RB": "Running Back", "TE": "Tight End", "C": "Center",
     "WR1": "Wide Receiver 1", "WR2": "Wide Receiver 2", "WR3": "Wide Receiver 3",
     "GK": "Goalkeeper",
     "LB": "Left Back", "LCB": "Left Center Back", "RCB": "Right Center Back", "RB": "Right Back",
     "DM": "Defensive Midfielder", "LCM": "Left Center Midfielder", "RCM": "Right Center Midfielder",
     "LW": "Left Winger", "ST": "Striker", "RW": "Right Winger",
 }
-def _full_pos(p):
-    p = (p or "").upper()
-    return POS_FULL.get(p, p)
+def _full_pos(p): return POS_FULL.get((p or "").upper(), p)
 
-def _pos_badge(text, bg=(0,0,0), fg=(255,255,255)):
-    f = _font(34)
-    dmy = Image.new("RGB",(10,10)); dr = ImageDraw.Draw(dmy)
-    tw = int(dr.textlength(text, font=f))
-    h  = int(f.size*1.05) + 16
-    w  = max(56, tw + 26)
-    badge = Image.new("RGBA",(w,h),(0,0,0,0))
-    bd = ImageDraw.Draw(badge)
-    bd.rounded_rectangle((0,0,w,h), radius=12, fill=(bg[0],bg[1],bg[2],220))
-    bd.text(((w - tw)//2, (h - int(f.size*1.05))//2 + 4), text, font=f, fill=fg)
-    return badge
+def _avoid_overlap(xy, size, placed, step=18, top=SAFE, bottom=H-SAFE):
+    x, y = xy; w, h = size
+    def inter(a, b):
+        ax, ay, aw, ah = a; bx, by, bw, bh = b
+        return not (ax+aw <= bx or bx+bw <= ax or ay+ah <= by or by+bh <= ay)
+    rect = [x,y,w,h]
+    for _ in range(100):
+        if any(inter(rect, r) for r in placed):
+            ny = y - step if y - step >= top else min(bottom-h, y + step)
+            if ny == y: break
+            y = ny; rect[1] = y
+        else:
+            break
+    placed.append(tuple(rect))
+    return (x,y)
 
 def render_guess_team(json_path, out_path=None, music_path=None):
     data = json.load(open(json_path, "r", encoding="utf-8"))
@@ -109,21 +146,22 @@ def render_guess_team(json_path, out_path=None, music_path=None):
 
     f_lab = _font(46)
     max_y = 0
+    placed_rects = []  # collect both stacks and badges to avoid collisions
 
     if mode == "basketball":
         pos_map = {
-            "PG": (W//2, 540),
-            "SG": (W//2 + 240, 620),
-            "SF": (W//2 - 240, 620),
-            "PF": (W//2 - 180, 840),
-            "C" : (W//2 + 180, 840),
+            "PG": (W//2, 520),
+            "SG": (W//2 + 260, 660),
+            "SF": (W//2 - 260, 660),
+            "PF": (W//2 - 200, 900),
+            "C" : (W//2 + 200, 900),
         }
         color = (10,35,70)
         logo_root = Path("assets/college_logos")
         for p in data["players"]:
             college = p.get("college","")
             pos = pos_map.get(p["pos"], (W//2, H//2))
-            pill = _pill(college, f_lab, color=color)
+            pill = _pill(college, f_lab, color=color, max_w=360)
             logo_path = None
             if college:
                 slug = _slug(college)
@@ -143,27 +181,32 @@ def render_guess_team(json_path, out_path=None, music_path=None):
             sh = _shadow(stack, alpha=110, r=24)
             bg.paste(sh, (sx-18, sy-18), sh)
             bg.paste(stack, (sx, sy), stack)
+            # register stack rect so badges don't overlap pills
+            placed_rects.append((sx, sy, stack.size[0], stack.size[1]))
+
             name = _full_pos(p["pos"])
-            pb = _pos_badge(name, bg=(20,40,85))
+            pb = _pos_badge(name, bg=(20,40,85), font_size=28, max_w=220)
             bx = sx + (stack.size[0] - pb.size[0]) // 2
-            by = sy - pb.size[1] - 8
+            by = sy - pb.size[1] - 10
+            bx, by = _avoid_overlap((bx, by), pb.size, placed_rects, top=SAFE)
             bg.paste(pb, (bx, by), pb)
+
             max_y = max(max_y, sy + stack.size[1])
 
     elif mode == "football":
         pos_map = {
-            "LT": (200, 540), "LG": (320, 540), "C": (540, 540),
-            "RG": (760, 540), "RT": (880, 540),
-            "QB": (540, 690), "RB": (540, 840),
-            "TE": (870, 690),
-            "WR1": (160, 690), "WR2": (920, 690), "WR3": (160, 900),
+            "LT": (220, 620), "LG": (360, 620), "C": (540, 620),
+            "RG": (720, 620), "RT": (860, 620),
+            "QB": (540, 760), "RB": (540, 900),
+            "TE": (860, 760),
+            "WR1": (140, 780), "WR2": (940, 780), "WR3": (220, 980),
         }
         color = (15,45,18)
         logo_root = Path("assets/college_logos")
         for p in data["players"]:
             college = p.get("college","")
             pos = pos_map.get(p["pos"], (W//2, H//2))
-            pill = _pill(college, f_lab, color=color)
+            pill = _pill(college, f_lab, color=color, max_w=360)
             logo_path = None
             if college:
                 slug = _slug(college)
@@ -183,11 +226,15 @@ def render_guess_team(json_path, out_path=None, music_path=None):
             sh = _shadow(stack, alpha=110, r=24)
             bg.paste(sh, (sx-18, sy-18), sh)
             bg.paste(stack, (sx, sy), stack)
+            placed_rects.append((sx, sy, stack.size[0], stack.size[1]))
+
             name = _full_pos(p["pos"])
-            pb = _pos_badge(name, bg=(25,80,30))
+            pb = _pos_badge(name, bg=(25,80,30), font_size=28, max_w=220)
             bx = sx + (stack.size[0] - pb.size[0]) // 2
-            by = sy - pb.size[1] - 8
+            by = sy - pb.size[1] - 10
+            bx, by = _avoid_overlap((bx, by), pb.size, placed_rects, top=SAFE)
             bg.paste(pb, (bx, by), pb)
+
             max_y = max(max_y, sy + stack.size[1])
 
     else:
@@ -203,7 +250,7 @@ def render_guess_team(json_path, out_path=None, music_path=None):
             country = p.get("country","")
             pos = pos_map.get(p["pos"], (W//2, H//2))
             label = iso or country or "—"
-            pill = _pill(label, f_lab, color=color)
+            pill = _pill(label, f_lab, color=color, max_w=320)
 
             flag_path = None
             if iso:
@@ -224,11 +271,15 @@ def render_guess_team(json_path, out_path=None, music_path=None):
             sh = _shadow(stack, alpha=110, r=24)
             bg.paste(sh, (sx-18, sy-18), sh)
             bg.paste(stack, (sx, sy), stack)
+            placed_rects.append((sx, sy, stack.size[0], stack.size[1]))
+
             name = _full_pos(p["pos"])
-            pb = _pos_badge(name, bg=(25,95,35))
+            pb = _pos_badge(name, bg=(25,95,35), font_size=28, max_w=220)
             bx = sx + (stack.size[0] - pb.size[0]) // 2
-            by = sy - pb.size[1] - 8
+            by = sy - pb.size[1] - 10
+            bx, by = _avoid_overlap((bx, by), pb.size, placed_rects, top=SAFE)
             bg.paste(pb, (bx, by), pb)
+
             max_y = max(max_y, sy + stack.size[1])
 
     year = str(data.get("year","")).strip()
@@ -243,8 +294,7 @@ def render_guess_team(json_path, out_path=None, music_path=None):
 
     handle = data.get("handle","@YourHandle • #Shorts")
     f_meta = _font(42)
-    draw.text((SAFE, H - SAFE - _lh(draw, f_meta)),
-              handle, font=f_meta, fill=(245,245,245))
+    draw.text((SAFE, H - SAFE - _lh(draw, f_meta)), handle, font=f_meta, fill=(245,245,245))
 
     arr = np.array(bg)
     clip = ImageClip(arr).set_duration(18)
@@ -266,6 +316,4 @@ def render_guess_team(json_path, out_path=None, music_path=None):
 
 if __name__ == "__main__":
     import sys
-    render_guess_team(sys.argv[1],
-                      sys.argv[2] if len(sys.argv) > 2 else None,
-                      sys.argv[3] if len(sys.argv) > 3 else None)
+    render_guess_team(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else None, sys.argv[3] if len(sys.argv) > 3 else None)
