@@ -34,7 +34,12 @@ jobs:
       - name: Fetch logos & flags for today's lineups
         run: |
           TODAY=$(date +%F)
-          python fetch_assets_v4_2.py data/out/$TODAY/lineup_basketball.json data/out/$TODAY/lineup_football.json data/out/$TODAY/lineup_soccer.json
+          # Use whichever fetcher you have committed:
+          if [ -f fetch_assets_v4_3.py ]; then
+            python fetch_assets_v4_3.py data/out/$TODAY/lineup_basketball.json data/out/$TODAY/lineup_football.json data/out/$TODAY/lineup_soccer.json
+          else
+            python fetch_assets_v4_2.py data/out/$TODAY/lineup_basketball.json data/out/$TODAY/lineup_football.json data/out/$TODAY/lineup_soccer.json
+          fi
 
       - name: Render today's three Shorts (with on-screen reveal)
         run: |
@@ -43,8 +48,8 @@ jobs:
           python render_guess_team.py data/out/$TODAY/lineup_football.json
           python render_guess_team.py data/out/$TODAY/lineup_soccer.json
 
-           - name: Upload Shorts to YouTube (answer in description)
-        timeout-minutes: 120   # was 30
+      - name: Upload Shorts to YouTube (answer in description)
+        timeout-minutes: 120
         env:
           PYTHONUNBUFFERED: "1"
           YT_TOKEN_JSON_BASE64: ${{ secrets.YT_TOKEN_JSON_BASE64 }}
@@ -62,6 +67,7 @@ jobs:
               i=$((i+1))
               continue
             fi
+
             ls -lh "$MP4"
 
             TITLE=$(python -c 'import json,sys; d=json.load(open(sys.argv[1])); sport={"basketball":"NBA","football":"NFL","soccer":"Soccer"}.get(d.get("mode",""),""); base=(d.get("title") or "Guess The Team").strip(); year=str(d.get("year","")); out=base + ((" \u2022 " + sport) if sport else "") + ((" ("+year+")") if year else ""); print(out)' "$JSON")
@@ -75,7 +81,7 @@ jobs:
             echo "Uploading: $MP4 -> $TITLE"
             python -u upload_youtube.py "$MP4" "$TITLE" "$DESC" "$TAGS"
 
-            # stagger only BETWEEN uploads (not after the last one), 3–7 minutes
+            # Stagger only BETWEEN uploads (3–7 min), not after the last one
             i=$((i+1))
             if [ $i -lt $n ]; then
               S=$(( (RANDOM % 5 + 3) * 60 ))
@@ -83,7 +89,6 @@ jobs:
               sleep $S
             fi
           done
-
 
       - name: Commit artifacts
         run: |
