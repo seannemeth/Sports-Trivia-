@@ -1,8 +1,8 @@
-name: Daily Guess-The-Team
 
+name: Daily Guess-The-Team
 on:
   schedule:
-    - cron: "10 12 * * *"   # daily at 12:10 UTC
+    - cron: "10 12 * * *"
   workflow_dispatch:
 
 jobs:
@@ -27,33 +27,42 @@ jobs:
           python -m pip install --upgrade pip wheel setuptools
           python -m pip install "Pillow<10" "moviepy==1.0.3" imageio-ffmpeg google-api-python-client google-auth requests
 
-      - name: Fetch logos & flags (on-demand, with manifest)
+      - name: Pick today's lineups
         run: |
-          python fetch_assets_v4.py data/lineup_basketball.json data/lineup_football.json data/lineup_soccer.json
+          python data/daily_agent.py
 
-      - name: Render three Shorts
+      - name: Fetch logos & flags for today's lineups
         run: |
-          python render_guess_team.py data/lineup_basketball.json
-          python render_guess_team.py data/lineup_football.json
-          python render_guess_team.py data/lineup_soccer.json
+          TODAY=$(date +%F)
+          python fetch_assets_v4.py data/out/$TODAY/lineup_basketball.json data/out/$TODAY/lineup_football.json data/out/$TODAY/lineup_soccer.json
 
-      - name: Upload Shorts to YouTube (staggered)
+      - name: Render today's three Shorts (with on-screen reveal)
+        run: |
+          TODAY=$(date +%F)
+          python render_guess_team.py data/out/$TODAY/lineup_basketball.json
+          python render_guess_team.py data/out/$TODAY/lineup_football.json
+          python render_guess_team.py data/out/$TODAY/lineup_soccer.json
+
+      - name: Upload Shorts to YouTube (answer in description)
         env:
           YT_TOKEN_JSON_BASE64: ${{ secrets.YT_TOKEN_JSON_BASE64 }}
         run: |
           set -e
-          for JSON in data/lineup_basketball.json data/lineup_football.json data/lineup_soccer.json; do
+          TODAY=$(date +%F)
+          for JSON in data/out/$TODAY/lineup_basketball.json data/out/$TODAY/lineup_football.json data/out/$TODAY/lineup_soccer.json; do
             MP4="${JSON%.json}_guess_team.mp4"
             if [ ! -f "$MP4" ]; then
-              echo "Missing $MP4 — skipping"
-              continue
+              echo "Missing $MP4 — skipping"; continue
             fi
             TITLE=$(python -c 'import json,sys; d=json.load(open(sys.argv[1])); sport={"basketball":"NBA","football":"NFL","soccer":"Soccer"}.get(d.get("mode",""),""); base=(d.get("title") or "Guess The Team").strip(); year=str(d.get("year","")); out=base + ((" \u2022 " + sport) if sport else "") + ((" ("+year+")") if year else ""); print(out)' "$JSON")
+            ANSWER=$(python -c 'import json,sys; d=json.load(open(sys.argv[1])); print(d.get("answer","").strip())' "$JSON")
             DESC="Daily Guess-The-Team challenge. Can you name the squad? #Shorts #Sports #Trivia"
+            if [ -n "$ANSWER" ]; then
+              DESC="${DESC}\n\nAnswer: ${ANSWER}"
+            fi
             TAGS="sports,trivia,shorts"
             echo "Uploading: $MP4 -> $TITLE"
             python upload_youtube.py "$MP4" "$TITLE" "$DESC" "$TAGS"
-            # stagger 15–34 min between uploads
             sleep $(( (RANDOM % 20 + 15) * 60 ))
           done
 
@@ -62,5 +71,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "chore: daily guess-the-team" || echo "No changes"
+          git commit -m "chore: daily guess-the-team v6 (reveal + rotation)" || echo "No changes"
           git push
