@@ -1,72 +1,130 @@
-
-import csv, random, json, os, datetime as dt
+import csv, random, json, datetime as dt
 from pathlib import Path
+from collections import defaultdict
 
 DATA_DIR = Path(__file__).parent / "data"
 OUT_DIR = Path(__file__).parent / "out"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 def load_teams():
-    teams = []
+    leagues = defaultdict(list)
     for fname in ["nfl.csv", "nba.csv", "mlb.csv"]:
         with open(DATA_DIR / fname, newline="", encoding="utf-8") as f:
-            rdr = csv.DictReader(f)
-            for r in rdr:
-                teams.append(r)
-    return teams
+            for r in csv.DictReader(f):
+                leagues[r["league"]].append(r)
+    flat = [t for v in leagues.values() for t in v]
+    return leagues, flat
 
-def mcq_city_for_team(teams):
-    t = random.choice(teams)
-    correct = t["city"]
-    league = t["league"]
-    teamname = t["team"]
-    wrongs = set()
-    same_league = [x for x in teams if x["league"] == league and x["city"] != correct]
-    while len(wrongs) < 3 and same_league:
-        wrongs.add(random.choice(same_league)["city"])
-    options = list(wrongs) + [correct]
-    random.shuffle(options)
-    prompt = f"In which city do the {teamname} play ({league})?"
-    answer = correct
-    return {"type":"city_for_team","question":prompt,"options":options,"answer":answer,"meta":{"league":league,"team":teamname}}
+def city_to_leagues(leagues):
+    m = defaultdict(set)
+    for L, lst in leagues.items():
+        for t in lst:
+            m[t["city"]].add(L)
+    return m
 
-def mcq_team_for_city(teams):
-    t = random.choice(teams)
-    correct = t["team"]
-    league = t["league"]
-    city = t["city"]
-    same_league = [x for x in teams if x["league"] == league and x["team"] != correct and x["city"] != city]
-    wrongs = set()
-    while len(wrongs) < 3 and same_league:
-        wrongs.add(random.choice(same_league)["team"])
-    options = list(wrongs) + [correct]
+def q_which_not_in_division(leagues):
+    L = random.choice(list(leagues.keys()))
+    by_div = defaultdict(list)
+    for t in leagues[L]: by_div[t["division"]].append(t)
+    good_div = random.choice([d for d,v in by_div.items() if len(v) >= 3])
+    corrects = random.sample(by_div[good_div], 3)
+    other_div = random.choice([d for d in by_div if d != good_div])
+    wrong = random.choice(by_div[other_div])
+    options = [f'{t["city"]} {t["team"]}' for t in corrects] + [f'{wrong["city"]} {wrong["team"]}']
     random.shuffle(options)
-    prompt = f"Which {league} team plays in {city}?"
-    answer = correct
-    return {"type":"team_for_city","question":prompt,"options":options,"answer":answer,"meta":{"league":league,"city":city}}
+    return {
+        "type":"not_in_division",
+        "question":f"Which team is NOT in the {good_div} ({L})?",
+        "options":options,
+        "answer":f'{wrong["city"]} {wrong["team"]}',
+        "meta":{"league":L,"division":good_div}
+    }
 
-def mcq_division_for_team(teams):
-    t = random.choice(teams)
-    correct = t["division"]
-    league = t["league"]
-    teamname = t["team"]
-    all_divs = sorted({x["division"] for x in teams if x["league"] == league})
-    distractors = [d for d in all_divs if d != correct]
-    options = random.sample(distractors, k=3) + [correct]
+def q_pair_same_division(leagues):
+    L = random.choice(list(leagues.keys()))
+    by_div = defaultdict(list)
+    for t in leagues[L]: by_div[t["division"]].append(t)
+    target_div = random.choice([d for d,v in by_div.items() if len(v) >= 2])
+    a,b = random.sample(by_div[target_div], 2)
+    correct = f'{a["team"]} & {b["team"]}'
+    teams = leagues[L]
+    distractors = set()
+    while len(distractors) < 3:
+        x,y = random.sample(teams, 2)
+        if x["division"] != y["division"]:
+            distractors.add(f'{x["team"]} & {y["team"]}')
+    options = list(distractors) + [correct]
     random.shuffle(options)
-    prompt = f"In which division do the {teamname} play ({league})?"
-    answer = correct
-    return {"type":"division_for_team","question":prompt,"options":options,"answer":answer,"meta":{"league":league,"team":teamname}}
+    return {
+        "type":"pair_same_division",
+        "question":f"Which pair plays in the SAME division ({L})?",
+        "options":options,
+        "answer":correct,
+        "meta":{"league":L,"division":target_div}
+    }
+
+def q_city_cross_league(leagues):
+    c2L = city_to_leagues(leagues)
+    city, Ls = random.choice([(c, Ls) for c, Ls in c2L.items() if len(Ls) >= 2])
+    L1, L2 = random.sample(list(Ls), 2)
+    correct = city
+    all_cities = {t["city"] for v in leagues.values() for t in v}
+    distractors = [c for c in all_cities if not ({L1, L2} <= c2L.get(c, set()))]
+    options = random.sample(distractors, 3) + [correct]
+    random.shuffle(options)
+    return {
+        "type":"city_cross_league",
+        "question":f"Which city has teams in BOTH the {L1} and the {L2}?",
+        "options":options,
+        "answer":correct,
+        "meta":{"leagues":[L1, L2]}
+    }
+
+def q_fix_mismatch(leagues):
+    L = random.choice(list(leagues.keys()))
+    true = random.choice(leagues[L])
+    correct = f'{true["city"]} {true["team"]}'
+    cities = [t["city"] for t in leagues[L] if t["city"] != true["city"]]
+    teams  = [t["team"] for t in leagues[L] if t["team"] != true["team"]]
+    mismatches = set()
+    while len(mismatches) < 3 and cities and teams:
+        c = random.choice(cities); tm = random.choice(teams)
+        if not (c == true["city"] and tm == true["team"]):
+            mismatches.add(f"{c} {tm}")
+    options = list(mismatches) + [correct]
+    random.shuffle(options)
+    return {
+        "type":"fix_mismatch",
+        "question":f"Which city–team pairing is CORRECT in the {L}?",
+        "options":options,
+        "answer":correct,
+        "meta":{"league":L}
+    }
+
+def q_division_count(leagues):
+    L = random.choice(list(leagues.keys()))
+    by_div = defaultdict(list)
+    for t in leagues[L]: by_div[t["division"]].append(t)
+    div = random.choice(list(by_div))
+    n = len(by_div[div])
+    options = {n}
+    while len(options) < 4:
+        options.add(max(2, n + random.choice([-2,-1,1,2,3])))
+    options = list(options); random.shuffle(options)
+    return {
+        "type":"division_count",
+        "question":f"How many teams are in the {div} ({L})?",
+        "options":[str(x) for x in options],
+        "answer":str(n),
+        "meta":{"league":L,"division":div,"true_count":n}
+    }
+
+QUESTION_BANK = [q_which_not_in_division, q_pair_same_division, q_city_cross_league, q_fix_mismatch, q_division_count]
 
 def generate_daily(n_questions=10, seed=None):
-    if seed is not None:
-        random.seed(seed)
-    teams = load_teams()
-    qlist = []
-    generators = [mcq_city_for_team, mcq_team_for_city, mcq_division_for_team]
-    for _ in range(n_questions):
-        q = random.choice(generators)(teams)
-        qlist.append(q)
+    if seed is not None: random.seed(seed)
+    leagues, _ = load_teams()
+    qlist = [random.choice(QUESTION_BANK)(leagues) for _ in range(n_questions)]
     date_str = dt.datetime.utcnow().strftime("%Y-%m-%d")
     out = {"date": date_str, "questions": qlist}
     path = OUT_DIR / f"trivia_{date_str}.json"
