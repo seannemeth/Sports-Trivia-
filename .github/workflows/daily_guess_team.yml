@@ -12,14 +12,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+            - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install deps
+      - name: Install system deps
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install "Pillow<10" moviepy imageio-ffmpeg google-api-python-client google-auth
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Install Python deps
+        run: |
+          python -m pip install --upgrade pip wheel setuptools
+          python -m pip install "Pillow<10" "moviepy==1.0.3" imageio-ffmpeg google-api-python-client google-auth
 
       - name: Fetch flags & build college placeholders
         run: python fetch_assets.py
@@ -29,6 +34,7 @@ jobs:
           python render_guess_team.py data/lineup_basketball.json
           python render_guess_team.py data/lineup_football.json
           python render_guess_team.py data/lineup_soccer.json
+
 
       - name: Upload 3 Shorts (staggered)
         env:
