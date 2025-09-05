@@ -1,0 +1,161 @@
+{
+  "date": "2025-09-05",
+  "questions": [
+    {
+      "type": "division_count",
+      "question": "How many teams are in the Central (NBA)?",
+      "options": [
+        "5",
+        "3",
+        "8",
+        "6"
+      ],
+      "answer": "5",
+      "meta": {
+        "league": "NBA",
+        "division": "Central",
+        "true_count": 5
+      }
+    },
+    {
+      "type": "fix_mismatch",
+      "question": "Which city–team pairing is CORRECT in the MLB?",
+      "options": [
+        "Kansas City Brewers",
+        "Boston Red Sox",
+        "Cincinnati Blue Jays",
+        "Chicago Marlins"
+      ],
+      "answer": "Boston Red Sox",
+      "meta": {
+        "league": "MLB"
+      }
+    },
+    {
+      "type": "city_cross_league",
+      "question": "Which city has teams in BOTH the MLB and the NBA?",
+      "options": [
+        "Toronto",
+        "Seattle",
+        "Indiana",
+        "Carolina"
+      ],
+      "answer": "Toronto",
+      "meta": {
+        "leagues": [
+          "MLB",
+          "NBA"
+        ]
+      }
+    },
+    {
+      "type": "division_count",
+      "question": "How many teams are in the NL West (MLB)?",
+      "options": [
+        "3",
+        "8",
+        "4",
+        "5"
+      ],
+      "answer": "5",
+      "meta": {
+        "league": "MLB",
+        "division": "NL West",
+        "true_count": 5
+      }
+    },
+    {
+      "type": "city_cross_league",
+      "question": "Which city has teams in BOTH the MLB and the NFL?",
+      "options": [
+        "Dallas",
+        "St. Louis",
+        "Indiana",
+        "Pittsburgh"
+      ],
+      "answer": "Pittsburgh",
+      "meta": {
+        "leagues": [
+          "MLB",
+          "NFL"
+        ]
+      }
+    },
+    {
+      "type": "fix_mismatch",
+      "question": "Which city–team pairing is CORRECT in the MLB?",
+      "options": [
+        "St. Louis Red Sox",
+        "Houston Rockies",
+        "Miami Mets",
+        "Texas Rangers"
+      ],
+      "answer": "Texas Rangers",
+      "meta": {
+        "league": "MLB"
+      }
+    },
+    {
+      "type": "pair_same_division",
+      "question": "Which pair plays in the SAME division (MLB)?",
+      "options": [
+        "Red Sox & Pirates",
+        "Cardinals & Reds",
+        "Rockies & Marlins",
+        "Pirates & Tigers"
+      ],
+      "answer": "Cardinals & Reds",
+      "meta": {
+        "league": "MLB",
+        "division": "NL Central"
+      }
+    },
+    {
+      "type": "division_count",
+      "question": "How many teams are in the AL West (MLB)?",
+      "options": [
+        "4",
+        "7",
+        "5",
+        "6"
+      ],
+      "answer": "5",
+      "meta": {
+        "league": "MLB",
+        "division": "AL West",
+        "true_count": 5
+      }
+    },
+    {
+      "type": "division_count",
+      "question": "How many teams are in the Southwest (NBA)?",
+      "options": [
+        "6",
+        "5",
+        "4",
+        "7"
+      ],
+      "answer": "5",
+      "meta": {
+        "league": "NBA",
+        "division": "Southwest",
+        "true_count": 5
+      }
+    },
+    {
+      "type": "not_in_division",
+      "question": "Which team is NOT in the AFC West (NFL)?",
+      "options": [
+        "Kansas City Chiefs",
+        "Los Angeles Chargers",
+        "Denver Broncos",
+        "Atlanta Falcons"
+      ],
+      "answer": "Atlanta Falcons",
+      "meta": {
+        "league": "NFL",
+        "division": "AFC West"
+      }
+    }
+  ]
+}
