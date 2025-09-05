@@ -43,19 +43,23 @@ jobs:
           python render_guess_team.py data/out/$TODAY/lineup_football.json
           python render_guess_team.py data/out/$TODAY/lineup_soccer.json
 
-      - name: Upload Shorts to YouTube (answer in description)
-        timeout-minutes: 30
+           - name: Upload Shorts to YouTube (answer in description)
+        timeout-minutes: 120   # was 30
         env:
           PYTHONUNBUFFERED: "1"
           YT_TOKEN_JSON_BASE64: ${{ secrets.YT_TOKEN_JSON_BASE64 }}
         run: |
           set -e
           TODAY=$(date +%F)
-          echo "TODAY=$TODAY"
-          for JSON in data/out/$TODAY/lineup_basketball.json data/out/$TODAY/lineup_football.json data/out/$TODAY/lineup_soccer.json; do
+          JSONS=(data/out/$TODAY/lineup_basketball.json data/out/$TODAY/lineup_football.json data/out/$TODAY/lineup_soccer.json)
+
+          i=0
+          n=${#JSONS[@]}
+          for JSON in "${JSONS[@]}"; do
             MP4="${JSON%.json}_guess_team.mp4"
             if [ ! -f "$MP4" ]; then
               echo "Missing $MP4 — skipping"
+              i=$((i+1))
               continue
             fi
             ls -lh "$MP4"
@@ -71,9 +75,15 @@ jobs:
             echo "Uploading: $MP4 -> $TITLE"
             python -u upload_youtube.py "$MP4" "$TITLE" "$DESC" "$TAGS"
 
-            # stagger to avoid back-to-back publishing
-            sleep $(( (RANDOM % 20 + 15) * 60 ))
+            # stagger only BETWEEN uploads (not after the last one), 3–7 minutes
+            i=$((i+1))
+            if [ $i -lt $n ]; then
+              S=$(( (RANDOM % 5 + 3) * 60 ))
+              echo "Sleeping $S seconds before next upload…"
+              sleep $S
+            fi
           done
+
 
       - name: Commit artifacts
         run: |
