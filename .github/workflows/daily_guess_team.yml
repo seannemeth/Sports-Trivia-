@@ -1,0 +1,71 @@
+
+name: Daily Guess-The-Team
+on:
+  schedule:
+    - cron: "10 12 * * *"   # ~08:10 ET
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "Pillow<10" moviepy imageio-ffmpeg google-api-python-client google-auth
+
+      - name: Fetch flags & build college placeholders
+        run: python fetch_assets.py
+
+      - name: Render three Shorts
+        run: |
+          python render_guess_team.py data/lineup_basketball.json
+          python render_guess_team.py data/lineup_football.json
+          python render_guess_team.py data/lineup_soccer.json
+
+      - name: Upload 3 Shorts (staggered)
+        env:
+          YT_TOKEN_JSON_BASE64: ${{ secrets.YT_TOKEN_JSON_BASE64 }}
+        run: |
+          set -e
+          declare -A MAP
+          MAP[data/lineup_basketball.json]="data/lineup_basketball_guess_team.mp4"
+          MAP[data/lineup_football.json]="data/lineup_football_guess_team.mp4"
+          MAP[data/lineup_soccer.json]="data/lineup_soccer_guess_team.mp4"
+
+          i=0
+          for JSON in data/lineup_basketball.json data/lineup_football.json data/lineup_soccer.json; do
+            MP4="${MAP[$JSON]}"
+            TITLE="$(python - <<'PY'
+import json,sys
+d=json.load(open(sys.argv[1]))
+print(f"{d.get('title','Guess The Team')} ({d.get('year','')})")
+PY
+ "$JSON")"
+            DESC="Daily Guess-The-Team challenge. Can you name the squad? #Shorts #Sports #Trivia"
+            TAGS="sports,trivia,shorts"
+            echo "Uploading: $MP4 -> $TITLE"
+            python upload_youtube.py "$MP4" "$TITLE" "$DESC" "$TAGS"
+            if [ $i -lt 2 ]; then
+              delay=$(( (RANDOM % 20 + 15) * 60 ))
+              echo "Sleeping $delay seconds before next upload…"
+              sleep $delay
+            fi
+            i=$((i+1))
+          done
+
+      - name: Commit artifacts
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore: daily guess-the-team" || echo "No changes"
+          git push
