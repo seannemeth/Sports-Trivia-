@@ -1,7 +1,7 @@
 name: Daily Sports Trivia
 on:
   schedule:
-    - cron: '10 12 * * *'   # 08:10 ET daily (cron is UTC)
+    - cron: '10 12 * * *'   # 08:10 ET (UTC cron)
   workflow_dispatch:
 
 jobs:
@@ -16,30 +16,27 @@ jobs:
         with:
           python-version: '3.11'
 
-      # (Optional now, safe to keep)
+      # Optional but fine to keep
       - name: Install ImageMagick
         run: sudo apt-get update && sudo apt-get install -y imagemagick
 
       - name: Install Python deps
-  run: |
-    python -m pip install --upgrade pip
-    python -m pip install "Pillow<10" "moviepy==1.0.3" imageio-ffmpeg google-api-python-client google-auth
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install "Pillow<10" "moviepy==1.0.3" imageio-ffmpeg google-api-python-client google-auth
 
       - name: Run agent
         run: python daily_agent.py
 
-      # 👉 NEW: find the latest generated short in /public/YYYY-MM-DD/*.mp4
+      # Find the newest short in /public/YYYY-MM-DD/*.mp4
       - name: Find latest short
         run: |
           set -e
           LATEST=$(ls -1t public/*/*.mp4 | head -n 1 || true)
-          if [ -z "$LATEST" ]; then
-            echo "No MP4 found in public/*/*.mp4"
-          fi
           echo "SHORT=$LATEST" >> $GITHUB_ENV
           echo "Found SHORT=$LATEST"
 
-      # 👉 NEW: upload to YouTube (requires repo secret YT_TOKEN_JSON_BASE64)
+      # Upload to YouTube (requires repo secret YT_TOKEN_JSON_BASE64)
       - name: Upload Short to YouTube
         if: env.SHORT != ''
         env:
