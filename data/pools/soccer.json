@@ -1,0 +1,152 @@
+[
+  {
+    "answer": "Manchester City",
+    "year": "2022",
+    "players": [
+      {
+        "pos": "GK",
+        "flag": "BRA"
+      },
+      {
+        "pos": "LB",
+        "flag": "PRT"
+      },
+      {
+        "pos": "LCB",
+        "flag": "NED"
+      },
+      {
+        "pos": "RCB",
+        "flag": "POR"
+      },
+      {
+        "pos": "RB",
+        "flag": "ENG"
+      },
+      {
+        "pos": "DM",
+        "flag": "ESP"
+      },
+      {
+        "pos": "LCM",
+        "flag": "BEL"
+      },
+      {
+        "pos": "RCM",
+        "flag": "ENG"
+      },
+      {
+        "pos": "LW",
+        "flag": "ENG"
+      },
+      {
+        "pos": "ST",
+        "flag": "NOR"
+      },
+      {
+        "pos": "RW",
+        "flag": "ARG"
+      }
+    ]
+  },
+  {
+    "answer": "Real Madrid",
+    "year": "2024",
+    "players": [
+      {
+        "pos": "GK",
+        "flag": "BEL"
+      },
+      {
+        "pos": "LB",
+        "flag": "FRA"
+      },
+      {
+        "pos": "LCB",
+        "flag": "AUT"
+      },
+      {
+        "pos": "RCB",
+        "flag": "GER"
+      },
+      {
+        "pos": "RB",
+        "flag": "ESP"
+      },
+      {
+        "pos": "DM",
+        "flag": "FRA"
+      },
+      {
+        "pos": "LCM",
+        "flag": "ENG"
+      },
+      {
+        "pos": "RCM",
+        "flag": "URU"
+      },
+      {
+        "pos": "LW",
+        "flag": "BRA"
+      },
+      {
+        "pos": "ST",
+        "flag": "BRA"
+      },
+      {
+        "pos": "RW",
+        "flag": "ENG"
+      }
+    ]
+  },
+  {
+    "answer": "Barcelona",
+    "year": "2023",
+    "players": [
+      {
+        "pos": "GK",
+        "flag": "GER"
+      },
+      {
+        "pos": "LB",
+        "flag": "ESP"
+      },
+      {
+        "pos": "LCB",
+        "flag": "ESP"
+      },
+      {
+        "pos": "RCB",
+        "flag": "FRA"
+      },
+      {
+        "pos": "RB",
+        "flag": "POR"
+      },
+      {
+        "pos": "DM",
+        "flag": "ESP"
+      },
+      {
+        "pos": "LCM",
+        "flag": "ESP"
+      },
+      {
+        "pos": "RCM",
+        "flag": "NED"
+      },
+      {
+        "pos": "LW",
+        "flag": "ESP"
+      },
+      {
+        "pos": "ST",
+        "flag": "POL"
+      },
+      {
+        "pos": "RW",
+        "flag": "BRA"
+      }
+    ]
+  }
+]

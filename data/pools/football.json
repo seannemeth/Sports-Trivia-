@@ -1,0 +1,152 @@
+[
+  {
+    "answer": "Cincinnati Bengals",
+    "year": "2023",
+    "players": [
+      {
+        "pos": "LT",
+        "college": "Notre Dame"
+      },
+      {
+        "pos": "LG",
+        "college": "UCLA"
+      },
+      {
+        "pos": "C",
+        "college": "Iowa"
+      },
+      {
+        "pos": "RG",
+        "college": "Wisconsin"
+      },
+      {
+        "pos": "RT",
+        "college": "Alabama"
+      },
+      {
+        "pos": "QB",
+        "college": "LSU"
+      },
+      {
+        "pos": "RB",
+        "college": "Oklahoma"
+      },
+      {
+        "pos": "TE",
+        "college": "Iowa"
+      },
+      {
+        "pos": "WR1",
+        "college": "LSU"
+      },
+      {
+        "pos": "WR2",
+        "college": "Ohio State"
+      },
+      {
+        "pos": "WR3",
+        "college": "Pitt"
+      }
+    ]
+  },
+  {
+    "answer": "Kansas City Chiefs",
+    "year": "2023",
+    "players": [
+      {
+        "pos": "LT",
+        "college": "Oklahoma"
+      },
+      {
+        "pos": "LG",
+        "college": "Tennessee"
+      },
+      {
+        "pos": "C",
+        "college": "Oklahoma State"
+      },
+      {
+        "pos": "RG",
+        "college": "Illinois"
+      },
+      {
+        "pos": "RT",
+        "college": "Oklahoma"
+      },
+      {
+        "pos": "QB",
+        "college": "Texas Tech"
+      },
+      {
+        "pos": "RB",
+        "college": "Rutgers"
+      },
+      {
+        "pos": "TE",
+        "college": "Cincinnati"
+      },
+      {
+        "pos": "WR1",
+        "college": "SMU"
+      },
+      {
+        "pos": "WR2",
+        "college": "Tennessee"
+      },
+      {
+        "pos": "WR3",
+        "college": "Clemson"
+      }
+    ]
+  },
+  {
+    "answer": "San Francisco 49ers",
+    "year": "2023",
+    "players": [
+      {
+        "pos": "LT",
+        "college": "Notre Dame"
+      },
+      {
+        "pos": "LG",
+        "college": "Notre Dame"
+      },
+      {
+        "pos": "C",
+        "college": "West Virginia"
+      },
+      {
+        "pos": "RG",
+        "college": "UTEP"
+      },
+      {
+        "pos": "RT",
+        "college": "McKendree"
+      },
+      {
+        "pos": "QB",
+        "college": "Iowa State"
+      },
+      {
+        "pos": "RB",
+        "college": "Stanford"
+      },
+      {
+        "pos": "TE",
+        "college": "Iowa"
+      },
+      {
+        "pos": "WR1",
+        "college": "South Carolina"
+      },
+      {
+        "pos": "WR2",
+        "college": "Arizona State"
+      },
+      {
+        "pos": "WR3",
+        "college": "Baylor"
+      }
+    ]
+  }
+]

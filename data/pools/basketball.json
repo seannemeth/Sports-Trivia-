@@ -1,0 +1,80 @@
+[
+  {
+    "answer": "Memphis Grizzlies",
+    "year": "2024",
+    "players": [
+      {
+        "pos": "PG",
+        "college": "Murray State"
+      },
+      {
+        "pos": "SG",
+        "college": "Georgia"
+      },
+      {
+        "pos": "SF",
+        "college": "Duke"
+      },
+      {
+        "pos": "PF",
+        "college": "Kentucky"
+      },
+      {
+        "pos": "C",
+        "college": "Arizona"
+      }
+    ]
+  },
+  {
+    "answer": "Boston Celtics",
+    "year": "2024",
+    "players": [
+      {
+        "pos": "PG",
+        "college": "Oklahoma State"
+      },
+      {
+        "pos": "SG",
+        "college": "Oregon"
+      },
+      {
+        "pos": "SF",
+        "college": "Duke"
+      },
+      {
+        "pos": "PF",
+        "college": "Tennessee"
+      },
+      {
+        "pos": "C",
+        "college": "Texas A&M"
+      }
+    ]
+  },
+  {
+    "answer": "Denver Nuggets",
+    "year": "2023",
+    "players": [
+      {
+        "pos": "PG",
+        "college": "Kentucky"
+      },
+      {
+        "pos": "SG",
+        "college": "Gonzaga"
+      },
+      {
+        "pos": "SF",
+        "college": "Missouri"
+      },
+      {
+        "pos": "PF",
+        "college": "Arizona"
+      },
+      {
+        "pos": "C",
+        "college": "Serbia"
+      }
+    ]
+  }
+]

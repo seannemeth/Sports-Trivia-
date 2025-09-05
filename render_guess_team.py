@@ -3,10 +3,11 @@ import os, json, re
 from pathlib import Path
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
-from moviepy.editor import ImageClip, AudioFileClip
+from moviepy.editor import ImageClip, AudioFileClip, CompositeVideoClip
 
 W, H = 1080, 1920
 SAFE = 48
+DURATION = 18.0  # seconds
 
 def _font(size):
     for cand in [
@@ -32,9 +33,8 @@ def _shadow(img, radius=22, alpha=140, expand=24, r=28):
     return sh.filter(ImageFilter.GaussianBlur(radius))
 
 def _wrap_lines(text, draw, font, max_w):
-    if max_w is None:
-        return [text]
-    words = text.split()
+    if max_w is None: return [text]
+    words = (text or "").split()
     lines, cur = [], ""
     for w in words:
         t = (cur + " " + w).strip()
@@ -64,10 +64,10 @@ def _pill(text, font, color=(10,35,70), txt=(255,255,255), max_w=None, line_gap=
         y += lh + line_gap
     return pill
 
-def _pos_badge(text, bg=(0,0,0), fg=(255,255,255), *, font_size=28, max_w=220):
+def _pos_badge(text, bg=(0,0,0), fg=(255,255,255), *, font_size=32, max_w=200):
     f = _font(font_size)
     dmy = Image.new("RGBA",(10,10)); dr = ImageDraw.Draw(dmy)
-    t = text
+    t = (text or "").upper()
     while int(dr.textlength(t, font=f)) > max_w - 26 and len(t) > 3:
         t = t[:-2] + "…"
     tw = int(dr.textlength(t, font=f))
@@ -80,10 +80,9 @@ def _pos_badge(text, bg=(0,0,0), fg=(255,255,255), *, font_size=28, max_w=220):
     return badge
 
 def _slug(s):
-    s = s.strip().lower()
+    s = (s or "").strip().lower()
     s = re.sub(r"[^a-z0-9]+", "-", s)
-    s = re.sub(r"-+", "-", s).strip("-")
-    return s or "x"
+    return re.sub(r"-+", "-", s).strip("-") or "x"
 
 def _stack_with_logo(center_xy, label_img, logo_img=None, gap=10):
     if logo_img is None:
@@ -95,19 +94,6 @@ def _stack_with_logo(center_xy, label_img, logo_img=None, gap=10):
     comp.paste(logo_img, ((w - logo_img.size[0])//2, 0), logo_img)
     comp.paste(label_img, ((w - label_img.size[0])//2, logo_img.size[1]+gap), label_img)
     return comp, (center_xy[0] - w//2, center_xy[1] - h//2)
-
-POS_FULL = {
-    "PG": "Point Guard", "SG": "Shooting Guard", "SF": "Small Forward",
-    "PF": "Power Forward", "C": "Center",
-    "LT": "Left Tackle", "LG": "Left Guard", "RG": "Right Guard", "RT": "Right Tackle",
-    "QB": "Quarterback", "RB": "Running Back", "TE": "Tight End", "C": "Center",
-    "WR1": "Wide Receiver 1", "WR2": "Wide Receiver 2", "WR3": "Wide Receiver 3",
-    "GK": "Goalkeeper",
-    "LB": "Left Back", "LCB": "Left Center Back", "RCB": "Right Center Back", "RB": "Right Back",
-    "DM": "Defensive Midfielder", "LCM": "Left Center Midfielder", "RCM": "Right Center Midfielder",
-    "LW": "Left Winger", "ST": "Striker", "RW": "Right Winger",
-}
-def _full_pos(p): return POS_FULL.get((p or "").upper(), p)
 
 def _avoid_overlap(xy, size, placed, step=18, top=SAFE, bottom=H-SAFE):
     x, y = xy; w, h = size
@@ -124,6 +110,21 @@ def _avoid_overlap(xy, size, placed, step=18, top=SAFE, bottom=H-SAFE):
             break
     placed.append(tuple(rect))
     return (x,y)
+
+def _reveal_overlay(text, w=W, h=H):
+    # Build a transparent overlay with centered reveal pill
+    ov = Image.new("RGBA", (w,h), (0,0,0,0))
+    draw = ImageDraw.Draw(ov)
+    # subtle dim behind
+    draw.rectangle((0,0,w,h), fill=(0,0,0,110))
+    f = _font(64)
+    pill = _pill(text, f, color=(0,160,255), txt=(16,18,24))
+    sh = _shadow(pill, expand=12, radius=12, alpha=130, r=22)
+    x = (w - pill.size[0])//2
+    y = int(h*0.78)  # near bottom-center
+    ov.paste(sh, (x-12, y-12), sh)
+    ov.paste(pill, (x, y), pill)
+    return ov
 
 def render_guess_team(json_path, out_path=None, music_path=None):
     data = json.load(open(json_path, "r", encoding="utf-8"))
@@ -146,7 +147,7 @@ def render_guess_team(json_path, out_path=None, music_path=None):
 
     f_lab = _font(46)
     max_y = 0
-    placed_rects = []  # collect both stacks and badges to avoid collisions
+    placed_rects = []
 
     if mode == "basketball":
         pos_map = {
@@ -160,37 +161,28 @@ def render_guess_team(json_path, out_path=None, music_path=None):
         logo_root = Path("assets/college_logos")
         for p in data["players"]:
             college = p.get("college","")
-            pos = pos_map.get(p["pos"], (W//2, H//2))
+            pos = pos_map.get((p.get("pos","")).upper(), (W//2, H//2))
             pill = _pill(college, f_lab, color=color, max_w=360)
-            logo_path = None
+            logo_img = None
             if college:
-                slug = _slug(college)
+                slug = re.sub(r"[^a-z0-9]+","-",college.lower()).strip("-")
                 for folder in [logo_root, Path("assets/logos/colleges")]:
                     cand = folder / f"{slug}.png"
-                    if cand.exists(): logo_path = cand; break
-            logo_img = None
-            if logo_path:
-                lg = Image.open(logo_path).convert("RGBA")
-                r = min(96/lg.width, 96/lg.height)
-                lg = lg.resize((int(lg.width*r), int(lg.height*r)))
-                frame = Image.new("RGBA", (lg.width+18, lg.height+18), (255,255,255,230))
-                frame.paste(lg, (9,9), lg)
-                logo_img = frame
+                    if cand.exists():
+                        logo_img = Image.open(cand).convert("RGBA"); break
 
             stack, (sx, sy) = _stack_with_logo(pos, pill, logo_img, gap=8)
             sh = _shadow(stack, alpha=110, r=24)
             bg.paste(sh, (sx-18, sy-18), sh)
             bg.paste(stack, (sx, sy), stack)
-            # register stack rect so badges don't overlap pills
             placed_rects.append((sx, sy, stack.size[0], stack.size[1]))
 
-            name = _full_pos(p["pos"])
-            pb = _pos_badge(name, bg=(20,40,85), font_size=28, max_w=220)
+            name = (p.get("pos","")).upper()
+            pb = _pos_badge(name, bg=(20,40,85), font_size=32, max_w=200)
             bx = sx + (stack.size[0] - pb.size[0]) // 2
             by = sy - pb.size[1] - 10
             bx, by = _avoid_overlap((bx, by), pb.size, placed_rects, top=SAFE)
             bg.paste(pb, (bx, by), pb)
-
             max_y = max(max_y, sy + stack.size[1])
 
     elif mode == "football":
@@ -205,22 +197,15 @@ def render_guess_team(json_path, out_path=None, music_path=None):
         logo_root = Path("assets/college_logos")
         for p in data["players"]:
             college = p.get("college","")
-            pos = pos_map.get(p["pos"], (W//2, H//2))
+            pos = pos_map.get((p.get("pos","")).upper(), (W//2, H//2))
             pill = _pill(college, f_lab, color=color, max_w=360)
-            logo_path = None
+            logo_img = None
             if college:
-                slug = _slug(college)
+                slug = re.sub(r"[^a-z0-9]+","-",college.lower()).strip("-")
                 for folder in [logo_root, Path("assets/logos/colleges")]:
                     cand = folder / f"{slug}.png"
-                    if cand.exists(): logo_path = cand; break
-            logo_img = None
-            if logo_path:
-                lg = Image.open(logo_path).convert("RGBA")
-                r = min(96/lg.width, 96/lg.height)
-                lg = lg.resize((int(lg.width*r), int(lg.height*r)))
-                frame = Image.new("RGBA", (lg.width+18, lg.height+18), (255,255,255,230))
-                frame.paste(lg, (9,9), lg)
-                logo_img = frame
+                    if cand.exists():
+                        logo_img = Image.open(cand).convert("RGBA"); break
 
             stack, (sx, sy) = _stack_with_logo(pos, pill, logo_img, gap=8)
             sh = _shadow(stack, alpha=110, r=24)
@@ -228,16 +213,15 @@ def render_guess_team(json_path, out_path=None, music_path=None):
             bg.paste(stack, (sx, sy), stack)
             placed_rects.append((sx, sy, stack.size[0], stack.size[1]))
 
-            name = _full_pos(p["pos"])
-            pb = _pos_badge(name, bg=(25,80,30), font_size=28, max_w=220)
+            name = (p.get("pos","")).upper()
+            pb = _pos_badge(name, bg=(25,80,30), font_size=32, max_w=200)
             bx = sx + (stack.size[0] - pb.size[0]) // 2
             by = sy - pb.size[1] - 10
             bx, by = _avoid_overlap((bx, by), pb.size, placed_rects, top=SAFE)
             bg.paste(pb, (bx, by), pb)
-
             max_y = max(max_y, sy + stack.size[1])
 
-    else:
+    else:  # soccer
         pos_map = {
             "GK": (W//2, 1560),
             "LB": (200, 1320), "LCB": (420, 1320), "RCB": (660, 1320), "RB": (880, 1320),
@@ -248,24 +232,16 @@ def render_guess_team(json_path, out_path=None, music_path=None):
         for p in data["players"]:
             iso = (p.get("flag") or "").upper()
             country = p.get("country","")
-            pos = pos_map.get(p["pos"], (W//2, H//2))
+            pos = pos_map.get((p.get("pos","")).upper(), (W//2, H//2))
             label = iso or country or "—"
             pill = _pill(label, f_lab, color=color, max_w=320)
 
-            flag_path = None
+            flag_img = None
             if iso:
                 for folder in [Path("assets/flags"), Path("assets/logos/flags")]:
                     cand = folder / f"{iso}.png"
-                    if cand.exists(): flag_path = cand; break
-
-            flag_img = None
-            if flag_path and flag_path.exists():
-                fl = Image.open(flag_path).convert("RGBA")
-                r = min(130/fl.width, 90/fl.height)
-                fl = fl.resize((int(fl.width*r), int(fl.height*r)))
-                frame = Image.new("RGBA", (fl.width+18, fl.height+18), (255,255,255,230))
-                frame.paste(fl, (9,9), fl)
-                flag_img = frame
+                    if cand.exists():
+                        flag_img = Image.open(cand).convert("RGBA"); break
 
             stack, (sx, sy) = _stack_with_logo(pos, pill, flag_img, gap=8)
             sh = _shadow(stack, alpha=110, r=24)
@@ -273,13 +249,12 @@ def render_guess_team(json_path, out_path=None, music_path=None):
             bg.paste(stack, (sx, sy), stack)
             placed_rects.append((sx, sy, stack.size[0], stack.size[1]))
 
-            name = _full_pos(p["pos"])
-            pb = _pos_badge(name, bg=(25,95,35), font_size=28, max_w=220)
+            name = (p.get("pos","")).upper()
+            pb = _pos_badge(name, bg=(25,95,35), font_size=32, max_w=200)
             bx = sx + (stack.size[0] - pb.size[0]) // 2
             by = sy - pb.size[1] - 10
             bx, by = _avoid_overlap((bx, by), pb.size, placed_rects, top=SAFE)
             bg.paste(pb, (bx, by), pb)
-
             max_y = max(max_y, sy + stack.size[1])
 
     year = str(data.get("year","")).strip()
@@ -296,15 +271,30 @@ def render_guess_team(json_path, out_path=None, music_path=None):
     f_meta = _font(42)
     draw.text((SAFE, H - SAFE - _lh(draw, f_meta)), handle, font=f_meta, fill=(245,245,245))
 
+    # Base clip
     arr = np.array(bg)
-    clip = ImageClip(arr).set_duration(18)
+    base = ImageClip(arr).set_duration(DURATION)
+
+    # Optional music
     music_path = music_path or data.get("music")
     if music_path and os.path.exists(music_path) and os.path.getsize(music_path) > 0:
         try:
             music = AudioFileClip(music_path).volumex(0.12)
-            clip = clip.set_audio(music)
+            base = base.set_audio(music)
         except Exception:
             pass
+
+    # On-screen reveal
+    reveal = (data.get("reveal_on_screen") in [True, "true", "yes", "1"])
+    answer = (data.get("answer") or "").strip()
+    if reveal and answer:
+        ov = _reveal_overlay(answer)
+        ov_arr = np.array(ov)
+        overlay = ImageClip(ov_arr).set_duration(max(1.8, float(data.get("reveal_seconds", 2.2))))
+        overlay = overlay.set_start(DURATION - overlay.duration).crossfadein(0.35)
+        clip = CompositeVideoClip([base, overlay])
+    else:
+        clip = base
 
     if not out_path:
         stem = Path(json_path).with_suffix("")
