@@ -35,30 +35,21 @@ jobs:
           YT_TOKEN_JSON_BASE64: ${{ secrets.YT_TOKEN_JSON_BASE64 }}
         run: |
           set -e
-          declare -A MAP
-          MAP[data/lineup_basketball.json]="data/lineup_basketball_guess_team.mp4"
-          MAP[data/lineup_football.json]="data/lineup_football_guess_team.mp4"
-          MAP[data/lineup_soccer.json]="data/lineup_soccer_guess_team.mp4"
-
-          i=0
           for JSON in data/lineup_basketball.json data/lineup_football.json data/lineup_soccer.json; do
-            MP4="${MAP[$JSON]}"
-            TITLE="$(python - <<'PY'
-import json,sys
-d=json.load(open(sys.argv[1]))
-print(f"{d.get('title','Guess The Team')} ({d.get('year','')})")
-PY
- "$JSON")"
+            MP4="${JSON%.json}_guess_team.mp4"
+            TITLE=$(python -c "import json,sys; d=json.load(open(sys.argv[1])); print((d.get('title','Guess The Team')) + ' (' + str(d.get('year','')) + ')')" "$JSON")
             DESC="Daily Guess-The-Team challenge. Can you name the squad? #Shorts #Sports #Trivia"
             TAGS="sports,trivia,shorts"
+
             echo "Uploading: $MP4 -> $TITLE"
             python upload_youtube.py "$MP4" "$TITLE" "$DESC" "$TAGS"
-            if [ $i -lt 2 ]; then
+
+            # Stagger next upload 15–35 minutes to avoid spam signals
+            if [ "$JSON" != "data/lineup_soccer.json" ]; then
               delay=$(( (RANDOM % 20 + 15) * 60 ))
               echo "Sleeping $delay seconds before next upload…"
               sleep $delay
             fi
-            i=$((i+1))
           done
 
       - name: Commit artifacts
