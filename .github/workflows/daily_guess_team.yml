@@ -2,7 +2,7 @@ name: Daily Guess-The-Team
 
 on:
   schedule:
-    - cron: "10 12 * * *"   # runs daily at 12:10 UTC
+    - cron: "10 12 * * *"   # daily at 12:10 UTC
   workflow_dispatch:
 
 jobs:
@@ -27,18 +27,15 @@ jobs:
           python -m pip install --upgrade pip wheel setuptools
           python -m pip install "Pillow<10" "moviepy==1.0.3" imageio-ffmpeg google-api-python-client google-auth requests
 
-      # Pick different lineups every day and write JSONs to data/out/YYYY-MM-DD/
       - name: Pick today's lineups
         run: |
           python data/daily_agent.py
 
       - name: Fetch logos & flags for today's lineups
         run: |
-        TODAY=$(date +%F)
-        python fetch_assets_v4_2.py data/out/$TODAY/lineup_basketball.json data/out/$TODAY/lineup_football.json data/out/$TODAY/lineup_soccer.json
+          TODAY=$(date +%F)
+          python fetch_assets_v4_2.py data/out/$TODAY/lineup_basketball.json data/out/$TODAY/lineup_football.json data/out/$TODAY/lineup_soccer.json
 
-
-      # Render all three Shorts with on-screen reveal
       - name: Render today's three Shorts (with on-screen reveal)
         run: |
           TODAY=$(date +%F)
@@ -46,7 +43,6 @@ jobs:
           python render_guess_team.py data/out/$TODAY/lineup_football.json
           python render_guess_team.py data/out/$TODAY/lineup_soccer.json
 
-      # Upload with progress, include Answer in description, stagger uploads
       - name: Upload Shorts to YouTube (answer in description)
         timeout-minutes: 30
         env:
@@ -75,7 +71,7 @@ jobs:
             echo "Uploading: $MP4 -> $TITLE"
             python -u upload_youtube.py "$MP4" "$TITLE" "$DESC" "$TAGS"
 
-            # Stagger 15–34 minutes to avoid back-to-back publishing
+            # stagger to avoid back-to-back publishing
             sleep $(( (RANDOM % 20 + 15) * 60 ))
           done
 
