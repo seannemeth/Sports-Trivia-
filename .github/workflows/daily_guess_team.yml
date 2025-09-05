@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-            - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
@@ -35,7 +35,6 @@ jobs:
           python render_guess_team.py data/lineup_football.json
           python render_guess_team.py data/lineup_soccer.json
 
-
       - name: Upload 3 Shorts (staggered)
         env:
           YT_TOKEN_JSON_BASE64: ${{ secrets.YT_TOKEN_JSON_BASE64 }}
@@ -50,7 +49,7 @@ jobs:
             echo "Uploading: $MP4 -> $TITLE"
             python upload_youtube.py "$MP4" "$TITLE" "$DESC" "$TAGS"
 
-            # Stagger next upload 15–35 minutes to avoid spam signals
+            # Stagger next upload 15–35 minutes
             if [ "$JSON" != "data/lineup_soccer.json" ]; then
               delay=$(( (RANDOM % 20 + 15) * 60 ))
               echo "Sleeping $delay seconds before next upload…"
