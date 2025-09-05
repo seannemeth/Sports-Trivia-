@@ -1,4 +1,3 @@
-
 name: Daily Guess-The-Team
 on:
   schedule:
