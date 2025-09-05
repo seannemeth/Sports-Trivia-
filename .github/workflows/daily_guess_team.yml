@@ -1,8 +1,8 @@
-
 name: Daily Guess-The-Team
+
 on:
   schedule:
-    - cron: "10 12 * * *"
+    - cron: "10 12 * * *"   # runs daily at 12:10 UTC
   workflow_dispatch:
 
 jobs:
@@ -27,15 +27,18 @@ jobs:
           python -m pip install --upgrade pip wheel setuptools
           python -m pip install "Pillow<10" "moviepy==1.0.3" imageio-ffmpeg google-api-python-client google-auth requests
 
+      # Pick different lineups every day and write JSONs to data/out/YYYY-MM-DD/
       - name: Pick today's lineups
         run: |
           python data/daily_agent.py
 
+      # Fetch logos & flags for today's JSONs (downloads to assets/* and creates a license manifest)
       - name: Fetch logos & flags for today's lineups
         run: |
           TODAY=$(date +%F)
           python fetch_assets_v4.py data/out/$TODAY/lineup_basketball.json data/out/$TODAY/lineup_football.json data/out/$TODAY/lineup_soccer.json
 
+      # Render all three Shorts with on-screen reveal
       - name: Render today's three Shorts (with on-screen reveal)
         run: |
           TODAY=$(date +%F)
@@ -43,17 +46,24 @@ jobs:
           python render_guess_team.py data/out/$TODAY/lineup_football.json
           python render_guess_team.py data/out/$TODAY/lineup_soccer.json
 
+      # Upload with progress, include Answer in description, stagger uploads
       - name: Upload Shorts to YouTube (answer in description)
+        timeout-minutes: 30
         env:
+          PYTHONUNBUFFERED: "1"
           YT_TOKEN_JSON_BASE64: ${{ secrets.YT_TOKEN_JSON_BASE64 }}
         run: |
           set -e
           TODAY=$(date +%F)
+          echo "TODAY=$TODAY"
           for JSON in data/out/$TODAY/lineup_basketball.json data/out/$TODAY/lineup_football.json data/out/$TODAY/lineup_soccer.json; do
             MP4="${JSON%.json}_guess_team.mp4"
             if [ ! -f "$MP4" ]; then
-              echo "Missing $MP4 — skipping"; continue
+              echo "Missing $MP4 — skipping"
+              continue
             fi
+            ls -lh "$MP4"
+
             TITLE=$(python -c 'import json,sys; d=json.load(open(sys.argv[1])); sport={"basketball":"NBA","football":"NFL","soccer":"Soccer"}.get(d.get("mode",""),""); base=(d.get("title") or "Guess The Team").strip(); year=str(d.get("year","")); out=base + ((" \u2022 " + sport) if sport else "") + ((" ("+year+")") if year else ""); print(out)' "$JSON")
             ANSWER=$(python -c 'import json,sys; d=json.load(open(sys.argv[1])); print(d.get("answer","").strip())' "$JSON")
             DESC="Daily Guess-The-Team challenge. Can you name the squad? #Shorts #Sports #Trivia"
@@ -61,8 +71,11 @@ jobs:
               DESC="${DESC}\n\nAnswer: ${ANSWER}"
             fi
             TAGS="sports,trivia,shorts"
+
             echo "Uploading: $MP4 -> $TITLE"
-            python upload_youtube.py "$MP4" "$TITLE" "$DESC" "$TAGS"
+            python -u upload_youtube.py "$MP4" "$TITLE" "$DESC" "$TAGS"
+
+            # Stagger 15–34 minutes to avoid back-to-back publishing
             sleep $(( (RANDOM % 20 + 15) * 60 ))
           done
 
