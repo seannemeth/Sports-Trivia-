@@ -7,7 +7,6 @@ from moviepy.editor import ImageClip, AudioFileClip
 
 W, H = 1080, 1920
 SAFE = 48
-PAD  = 20
 
 def _font(size):
     for cand in [
@@ -46,7 +45,6 @@ def _pill(text, font, color=(10,35,70), txt=(255,255,255)):
 
 def _slug(s):
     s = s.strip().lower()
-    import re
     s = re.sub(r"[^a-z0-9]+", "-", s)
     s = re.sub(r"-+", "-", s).strip("-")
     return s or "x"
@@ -62,6 +60,34 @@ def _stack_with_logo(center_xy, label_img, logo_img=None, gap=10):
     comp.paste(label_img, ((w - label_img.size[0])//2, logo_img.size[1]+gap), label_img)
     return comp, (center_xy[0] - w//2, center_xy[1] - h//2)
 
+POS_FULL = {
+    "PG": "Point Guard", "SG": "Shooting Guard", "SF": "Small Forward",
+    "PF": "Power Forward", "C": "Center",
+    "LT": "Left Tackle", "LG": "Left Guard", "C": "Center",
+    "RG": "Right Guard", "RT": "Right Tackle",
+    "QB": "Quarterback", "RB": "Running Back", "TE": "Tight End",
+    "WR1": "Wide Receiver 1", "WR2": "Wide Receiver 2", "WR3": "Wide Receiver 3",
+    "GK": "Goalkeeper",
+    "LB": "Left Back", "LCB": "Left Center Back", "RCB": "Right Center Back", "RB": "Right Back",
+    "DM": "Defensive Midfielder", "LCM": "Left Center Midfielder", "RCM": "Right Center Midfielder",
+    "LW": "Left Winger", "ST": "Striker", "RW": "Right Winger",
+}
+def _full_pos(p):
+    p = (p or "").upper()
+    return POS_FULL.get(p, p)
+
+def _pos_badge(text, bg=(0,0,0), fg=(255,255,255)):
+    f = _font(34)
+    dmy = Image.new("RGB",(10,10)); dr = ImageDraw.Draw(dmy)
+    tw = int(dr.textlength(text, font=f))
+    h  = int(f.size*1.05) + 16
+    w  = max(56, tw + 26)
+    badge = Image.new("RGBA",(w,h),(0,0,0,0))
+    bd = ImageDraw.Draw(badge)
+    bd.rounded_rectangle((0,0,w,h), radius=12, fill=(bg[0],bg[1],bg[2],220))
+    bd.text(((w - tw)//2, (h - int(f.size*1.05))//2 + 4), text, font=f, fill=fg)
+    return badge
+
 def render_guess_team(json_path, out_path=None, music_path=None):
     data = json.load(open(json_path, "r", encoding="utf-8"))
     mode = data.get("mode","basketball").lower()
@@ -69,15 +95,17 @@ def render_guess_team(json_path, out_path=None, music_path=None):
     bg = Image.open(bg_path).convert("RGB").resize((W,H))
     draw = ImageDraw.Draw(bg)
 
-    title = data.get("title", "Guess The Team")
-    f_title = _font(84)
-    chip_w = int(draw.textlength(title, font=f_title) + 48)
-    chip_h = int(f_title.size*1.2) + 24
-    chip = Image.new("RGBA", (chip_w, chip_h), (0,0,0,0))
-    cd = ImageDraw.Draw(chip)
-    cd.rounded_rectangle((0,0,chip_w,chip_h), radius=22, fill=(255,160,0,235))
-    cd.text((24, 12), title, font=f_title, fill=(15,18,24))
-    bg.paste(chip, (SAFE, SAFE), chip)
+    title = (data.get("title") or "").strip()
+    if title:
+        f_title = _font(46)
+        tw = int(draw.textlength(title, font=f_title))
+        w  = min(tw + 32, 520)
+        h  = int(f_title.size*1.1) + 18
+        badge = Image.new("RGBA", (w, h), (0,0,0,0))
+        bd = ImageDraw.Draw(badge)
+        bd.rounded_rectangle((0,0,w,h), radius=14, fill=(0,0,0,140))
+        bd.text((16, 8), title, font=f_title, fill=(255,255,255))
+        bg.paste(badge, (SAFE, SAFE), badge)
 
     f_lab = _font(46)
     max_y = 0
@@ -115,6 +143,11 @@ def render_guess_team(json_path, out_path=None, music_path=None):
             sh = _shadow(stack, alpha=110, r=24)
             bg.paste(sh, (sx-18, sy-18), sh)
             bg.paste(stack, (sx, sy), stack)
+            name = _full_pos(p["pos"])
+            pb = _pos_badge(name, bg=(20,40,85))
+            bx = sx + (stack.size[0] - pb.size[0]) // 2
+            by = sy - pb.size[1] - 8
+            bg.paste(pb, (bx, by), pb)
             max_y = max(max_y, sy + stack.size[1])
 
     elif mode == "football":
@@ -150,9 +183,14 @@ def render_guess_team(json_path, out_path=None, music_path=None):
             sh = _shadow(stack, alpha=110, r=24)
             bg.paste(sh, (sx-18, sy-18), sh)
             bg.paste(stack, (sx, sy), stack)
+            name = _full_pos(p["pos"])
+            pb = _pos_badge(name, bg=(25,80,30))
+            bx = sx + (stack.size[0] - pb.size[0]) // 2
+            by = sy - pb.size[1] - 8
+            bg.paste(pb, (bx, by), pb)
             max_y = max(max_y, sy + stack.size[1])
 
-    else:  # soccer
+    else:
         pos_map = {
             "GK": (W//2, 1560),
             "LB": (200, 1320), "LCB": (420, 1320), "RCB": (660, 1320), "RB": (880, 1320),
@@ -186,6 +224,11 @@ def render_guess_team(json_path, out_path=None, music_path=None):
             sh = _shadow(stack, alpha=110, r=24)
             bg.paste(sh, (sx-18, sy-18), sh)
             bg.paste(stack, (sx, sy), stack)
+            name = _full_pos(p["pos"])
+            pb = _pos_badge(name, bg=(25,95,35))
+            bx = sx + (stack.size[0] - pb.size[0]) // 2
+            by = sy - pb.size[1] - 8
+            bg.paste(pb, (bx, by), pb)
             max_y = max(max_y, sy + stack.size[1])
 
     year = str(data.get("year","")).strip()
@@ -216,8 +259,7 @@ def render_guess_team(json_path, out_path=None, music_path=None):
     if not out_path:
         stem = Path(json_path).with_suffix("")
         out_path = str(stem) + "_guess_team.mp4"
-    clip.write_videofile(out_path, fps=30, codec="libx264", audio_codec="aac",
-                         preset="medium", threads=4)
+    clip.write_videofile(out_path, fps=30, codec="libx264", audio_codec="aac", preset="medium", threads=4)
     clip.close()
     print("Wrote", out_path)
     return out_path
