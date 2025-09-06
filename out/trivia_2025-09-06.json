@@ -1,0 +1,158 @@
+{
+  "date": "2025-09-06",
+  "questions": [
+    {
+      "type": "not_in_division",
+      "question": "Which team is NOT in the Atlantic (NBA)?",
+      "options": [
+        "Brooklyn Nets",
+        "New York Knicks",
+        "Denver Nuggets",
+        "Philadelphia 76ers"
+      ],
+      "answer": "Denver Nuggets",
+      "meta": {
+        "league": "NBA",
+        "division": "Atlantic"
+      }
+    },
+    {
+      "type": "not_in_division",
+      "question": "Which team is NOT in the AL East (MLB)?",
+      "options": [
+        "Seattle Mariners",
+        "New York Yankees",
+        "Baltimore Orioles",
+        "Tampa Bay Rays"
+      ],
+      "answer": "Seattle Mariners",
+      "meta": {
+        "league": "MLB",
+        "division": "AL East"
+      }
+    },
+    {
+      "type": "not_in_division",
+      "question": "Which team is NOT in the AFC North (NFL)?",
+      "options": [
+        "Carolina Panthers",
+        "Cleveland Browns",
+        "Baltimore Ravens",
+        "Pittsburgh Steelers"
+      ],
+      "answer": "Carolina Panthers",
+      "meta": {
+        "league": "NFL",
+        "division": "AFC North"
+      }
+    },
+    {
+      "type": "division_count",
+      "question": "How many teams are in the Central (NBA)?",
+      "options": [
+        "6",
+        "5",
+        "7",
+        "4"
+      ],
+      "answer": "5",
+      "meta": {
+        "league": "NBA",
+        "division": "Central",
+        "true_count": 5
+      }
+    },
+    {
+      "type": "division_count",
+      "question": "How many teams are in the Pacific (NBA)?",
+      "options": [
+        "5",
+        "6",
+        "8",
+        "3"
+      ],
+      "answer": "5",
+      "meta": {
+        "league": "NBA",
+        "division": "Pacific",
+        "true_count": 5
+      }
+    },
+    {
+      "type": "not_in_division",
+      "question": "Which team is NOT in the Southeast (NBA)?",
+      "options": [
+        "San Antonio Spurs",
+        "Washington Wizards",
+        "Charlotte Hornets",
+        "Atlanta Hawks"
+      ],
+      "answer": "San Antonio Spurs",
+      "meta": {
+        "league": "NBA",
+        "division": "Southeast"
+      }
+    },
+    {
+      "type": "division_count",
+      "question": "How many teams are in the NL East (MLB)?",
+      "options": [
+        "3",
+        "8",
+        "4",
+        "5"
+      ],
+      "answer": "5",
+      "meta": {
+        "league": "MLB",
+        "division": "NL East",
+        "true_count": 5
+      }
+    },
+    {
+      "type": "pair_same_division",
+      "question": "Which pair plays in the SAME division (NBA)?",
+      "options": [
+        "76ers & Nets",
+        "Celtics & Hawks",
+        "Hornets & Cavaliers",
+        "Suns & Wizards"
+      ],
+      "answer": "76ers & Nets",
+      "meta": {
+        "league": "NBA",
+        "division": "Atlantic"
+      }
+    },
+    {
+      "type": "not_in_division",
+      "question": "Which team is NOT in the AL West (MLB)?",
+      "options": [
+        "Miami Marlins",
+        "Los Angeles Angels",
+        "Texas Rangers",
+        "Oakland Athletics"
+      ],
+      "answer": "Miami Marlins",
+      "meta": {
+        "league": "MLB",
+        "division": "AL West"
+      }
+    },
+    {
+      "type": "pair_same_division",
+      "question": "Which pair plays in the SAME division (MLB)?",
+      "options": [
+        "Guardians & Blue Jays",
+        "Blue Jays & Royals",
+        "Tigers & Royals",
+        "Marlins & Brewers"
+      ],
+      "answer": "Tigers & Royals",
+      "meta": {
+        "league": "MLB",
+        "division": "AL Central"
+      }
+    }
+  ]
+}
